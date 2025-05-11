@@ -18,6 +18,8 @@ set(src_and_dest_list
     "/home/anujs/practice/build/Desktop-Debug/practice/vstestdata.js"
     "/home/anujs/practice/utils/Result.qml"
     "/home/anujs/practice/build/Desktop-Debug/practice/utils/Result.qml"
+    "/home/anujs/practice/utils/KeyAnalysis.qml"
+    "/home/anujs/practice/build/Desktop-Debug/practice/utils/KeyAnalysis.qml"
 
 )
 set(timestamp_file "/home/anujs/practice/build/Desktop-Debug/.qt/apppractice_qml.txt")

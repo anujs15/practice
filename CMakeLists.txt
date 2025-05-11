@@ -30,6 +30,8 @@ qt_add_qml_module(apppractice
         QML_FILES utils/Testground.qml
         QML_FILES vstestdata.js
         QML_FILES utils/Result.qml
+        QML_FILES utils/KeyAnalysis.qml
+        QML_FILES
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

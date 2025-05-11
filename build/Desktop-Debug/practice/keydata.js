@@ -41,7 +41,7 @@ var appsdata=[
         },
         {
           title: 'Scroll Page Up',
-          keys: ['Ctrl', 'PaUp'],
+          keys: ['Ctrl', 'PageUp'],
         },
       ],
     },

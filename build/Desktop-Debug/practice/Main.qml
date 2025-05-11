@@ -14,7 +14,7 @@ ApplicationWindow {
     StackView {
            id: stackView
            anchors.fill: parent
-           initialItem: AppsView {  // Use utils namespace
+           initialItem: AppsView {
                appsdata: Fn.appsdata
                stackView: stackView
            }
@@ -22,4 +22,3 @@ ApplicationWindow {
 }
 
 
-//https://www.youtube.com/watch?v=gzoWIJQDA1c  (video for backend c++)

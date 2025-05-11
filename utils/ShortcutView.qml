@@ -19,7 +19,6 @@ Page {
     property var keyColors: []
     property int count:1
     property bool skipright:true
-    property int correct:0
 
     Button {
         id: backButton
@@ -44,17 +43,66 @@ Page {
 
     function checkKeyPress(event) {
         const currentKey = expectedSequence[currentStep]
+
         let keyMatch = false
 
         if (currentKey === "Ctrl") {
             keyMatch = event.modifiers & Qt.ControlModifier
-        } else if (currentKey === "Enter") {
-            keyMatch = (event.key === Qt.Key_Enter || event.key===Qt.Key_Return)
         } else if (currentKey === "Shift") {
             keyMatch = event.modifiers & Qt.ShiftModifier
+        } else if (currentKey === "Enter") {
+            keyMatch = (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
         } else if (currentKey === "Alt") {
             keyMatch = event.modifiers & Qt.AltModifier
-        } else {
+        }else if (currentKey === "PageDown") {
+            keyMatch = event.key === Qt.Key_PageDown
+        }else if (currentKey === "PageUp") {
+            keyMatch = event.key === Qt.Key_PageUp
+        }else if (currentKey === "Space") {
+            keyMatch = event.key === Qt.Key_Space
+        }else if (currentKey === "Tab") {
+            keyMatch = event.key === Qt.Qt.Key_Tab
+        }else if (currentKey === "Backtab") {
+            keyMatch = event.key === Qt.Key_Backtab
+        }else if (currentKey === "Backspace") {
+            keyMatch = event.key === Qt.Key_Backspace
+        }else if (currentKey === "Delete") {
+            keyMatch = event.key === Qt.Key_Delete
+        }else if (currentKey === "Inser") {
+            keyMatch = event.key === Qt.Key_Insert
+        }else if (currentKey === "Home") {
+            keyMatch = event.key === Qt.Key_Home
+        }else if (currentKey === "End") {
+            keyMatch = event.key === Qt.Key_End
+        }else if (currentKey === "Up") {
+            keyMatch = event.key === Qt.Key_Up
+        }else if (currentKey === "Down") {
+            keyMatch = event.key === Qt.Key_Down
+        }else if (currentKey === "F1") {
+            keyMatch = event.key === Qt.Key_F1
+        }else if (currentKey === "F2") {
+            keyMatch = event.key === Qt.Key_F2
+        }else if (currentKey === "F3") {
+            keyMatch = event.key === Qt.Key_F3
+        }else if (currentKey === "F4") {
+            keyMatch = event.key === Qt.Key_F4
+        }else if (currentKey === "F5") {
+            keyMatch = event.key === Qt.Key_F5
+        }else if (currentKey === "F6") {
+            keyMatch = event.key === Qt.Key_F6
+        }else if (currentKey === "F7") {
+            keyMatch = event.key === Qt.Key_F7
+        }else if (currentKey === "F8") {
+            keyMatch = event.key === Qt.Key_F8
+        }else if (currentKey === "F9") {
+            keyMatch = event.key === Qt.Key_F9
+        }else if (currentKey === "F10") {
+            keyMatch = event.key === Qt.Key_F10
+        }else if (currentKey === "F11") {
+            keyMatch = event.key === Qt.Key_F11
+        }else if (currentKey === "F12") {
+            keyMatch = event.key === Qt.Key_F12
+        }else {
             keyMatch = event.key === currentKey.charCodeAt(0)
         }
 
@@ -82,38 +130,23 @@ Page {
             } else {
                 const currentKey = expectedSequence[currentStep]
 
-                if (checkKeyPress(event)) {
-                    activeKeys[currentKey] = true
-                    var newColors=keyColors.slice()
-                    newColors[currentStep] = "green"
-                    keyColors=newColors
-                    currentStep++
+                var newColors = keyColors.slice()
+                newColors[currentStep] = checkKeyPress(event) ? "green" : "red"
+                keyColors = newColors
+                activeKeys[currentKey] = true
+                currentStep++
 
-                    if (currentStep === expectedSequence.length) {
-
-                        var isallkeys=keyColors.includes("red")
+                if (currentStep === expectedSequence.length) {
+                    var isallkeys=keyColors.includes("red")
                        if(!isallkeys){
-                           correct++
-                        showResult(true)
-                        nextShortcutTimer.start()
-                       }
+                            showResult(true)
+                           nextShortcutTimer.start()
+                        }
                        else{
                            showResult(false)
                            resetTimer.start()
                        }
-                    }
-
-                    event.accepted = true
-                } else {
-                    activeKeys[currentKey] = true
-                    newColors=keyColors.slice()
-                    newColors[currentStep] = "red"
-                    keyColors=newColors
-                    currentStep++
-                    allkeys=false
-                    if (currentStep === expectedSequence.length) {
-                        showResult(allkeys)
-                    }
+                       event.accepted = true
                 }
             }
         }
@@ -129,16 +162,16 @@ Page {
 
             if((event.key=== Qt.Key_Right || event.key=== Qt.Key_Left) && currentStep==0) {
                 resetSequence()
+            }else if (!releasedKey && currentStep === expectedSequence.length) {
+                delete activeKeys[releasedKey]
             } else if (releasedKey) {
                 delete activeKeys[releasedKey]
                 if (currentStep > 0 && currentStep < expectedSequence.length) {
-                    showResult(false)
                     resetSequence()
                 }
             }
              else {
                 delete activeKeys[releasedKey]
-                showResult(false)
                 resetSequence()
             }
         }
@@ -161,7 +194,7 @@ Page {
                 id: text
                 font.pointSize: 18
                 anchors.centerIn: parent
-                text:  `${correct}/${count}/${appsdata.shortcuts.length}`
+                text:  `${count}/${appsdata.shortcuts.length}`
                 color: "white"
             }
         }

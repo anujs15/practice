@@ -61,6 +61,13 @@ namespace _qt_qml_practice_utils_Result_qml {
         reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), &aotBuiltFunctions[0], nullptr
     };
 }
+namespace _qt_qml_practice_utils_KeyAnalysis_qml { 
+    extern const unsigned char qmlData[];
+    extern const QQmlPrivate::AOTCompiledFunction aotBuiltFunctions[];
+    const QQmlPrivate::CachedQmlUnit unit = {
+        reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), &aotBuiltFunctions[0], nullptr
+    };
+}
 
 }
 namespace {
@@ -83,6 +90,7 @@ Registry::Registry() {
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/practice/utils/Testground.qml"), &QmlCacheGeneratedCode::_qt_qml_practice_utils_Testground_qml::unit);
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/practice/vstestdata.js"), &QmlCacheGeneratedCode::_qt_qml_practice_vstestdata_js::unit);
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/practice/utils/Result.qml"), &QmlCacheGeneratedCode::_qt_qml_practice_utils_Result_qml::unit);
+    resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/practice/utils/KeyAnalysis.qml"), &QmlCacheGeneratedCode::_qt_qml_practice_utils_KeyAnalysis_qml::unit);
     QQmlPrivate::RegisterQmlUnitCacheHook registration;
     registration.structVersion = 0;
     registration.lookupCachedQmlUnit = &lookupCachedUnit;

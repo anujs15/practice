@@ -10,16 +10,6 @@ Rectangle {
     required property var appsdata
     required property StackView stackView
 
-    Rectangle{
-
-        anchors.centerIn: parent
-        color: "#282424"
-        border.color: "white"
-        border.width: 1
-        radius: 20
-        width: parent.width/3
-        height: parent.height/2
-
         GridLayout {
             id: gridLayout
             columns: 2
@@ -85,7 +75,6 @@ Rectangle {
             }
         }
     }
-}
 }
 
 

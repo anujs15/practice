@@ -14,7 +14,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 26,
-                        "durationMicroseconds": 2993,
+                        "durationMicroseconds": 3651,
                         "errorMessage": "Cannot generate efficient code for script lookup",
                         "functionName": "appsdata",
                         "line": 18

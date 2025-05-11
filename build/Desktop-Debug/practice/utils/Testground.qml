@@ -21,7 +21,16 @@ Page{
     property var keyText: []
     property int count: 1
     property bool skipright: true
-    property var attemptedKeys: Array.from({"length": appsdata.test.length}, () => ({"attempt": false,"correct": false}))
+
+    property var attemptedKeys: Array.from({"length": appsdata.test.length}, () =>({"keypressed":[], "color":[],"attempt": false,"correct": false}))
+
+    // attemptedKey array structure below, this data i osed in result.qml , KeyAnalysis.qml
+      /* attemptedKeys: {
+           "keypresseds":[],  // user key pressed sequence
+           "color":[],        // store key color right:greeen , wrong:red
+           "attempt":false,  // user attempt key sequence or not
+           "correct":false   // whole keysequence right or wrong
+       } */
 
     Button {
         id: backButton
@@ -54,7 +63,7 @@ Page{
             onClicked: {
                 stackView.push("Result.qml", {
                     attemptedKeys:attemptedKeys,
-                    count:count,
+                    appsdata:appsdata,
                     stackView: stackView
                 })
             }
@@ -155,6 +164,7 @@ Page{
                 && event.text !== '\x00' ? event.text : "Unknown"
     }
 
+
     function checkKeyPress(event) {
         const currentKey = expectedSequence[currentStep]
 
@@ -165,11 +175,58 @@ Page{
         } else if (currentKey === "Shift") {
             keyMatch = event.modifiers & Qt.ShiftModifier
         } else if (currentKey === "Enter") {
-            keyMatch = (event.key === Qt.Key_Enter
-                        || event.key === Qt.Key_Return)
+            keyMatch = (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
         } else if (currentKey === "Alt") {
             keyMatch = event.modifiers & Qt.AltModifier
-        } else {
+        }else if (currentKey === "PageDown") {
+            keyMatch = event.key === Qt.Key_PageDown
+        }else if (currentKey === "PageUp") {
+            keyMatch = event.key === Qt.Key_PageUp
+        }else if (currentKey === "Space") {
+            keyMatch = event.key === Qt.Key_Space
+        }else if (currentKey === "Tab") {
+            keyMatch = event.key === Qt.Qt.Key_Tab
+        }else if (currentKey === "Backtab") {
+            keyMatch = event.key === Qt.Key_Backtab
+        }else if (currentKey === "Backspace") {
+            keyMatch = event.key === Qt.Key_Backspace
+        }else if (currentKey === "Delete") {
+            keyMatch = event.key === Qt.Key_Delete
+        }else if (currentKey === "Inser") {
+            keyMatch = event.key === Qt.Key_Insert
+        }else if (currentKey === "Home") {
+            keyMatch = event.key === Qt.Key_Home
+        }else if (currentKey === "End") {
+            keyMatch = event.key === Qt.Key_End
+        }else if (currentKey === "Up") {
+            keyMatch = event.key === Qt.Key_Up
+        }else if (currentKey === "Down") {
+            keyMatch = event.key === Qt.Key_Down
+        }else if (currentKey === "F1") {
+            keyMatch = event.key === Qt.Key_F1
+        }else if (currentKey === "F2") {
+            keyMatch = event.key === Qt.Key_F2
+        }else if (currentKey === "F3") {
+            keyMatch = event.key === Qt.Key_F3
+        }else if (currentKey === "F4") {
+            keyMatch = event.key === Qt.Key_F4
+        }else if (currentKey === "F5") {
+            keyMatch = event.key === Qt.Key_F5
+        }else if (currentKey === "F6") {
+            keyMatch = event.key === Qt.Key_F6
+        }else if (currentKey === "F7") {
+            keyMatch = event.key === Qt.Key_F7
+        }else if (currentKey === "F8") {
+            keyMatch = event.key === Qt.Key_F8
+        }else if (currentKey === "F9") {
+            keyMatch = event.key === Qt.Key_F9
+        }else if (currentKey === "F10") {
+            keyMatch = event.key === Qt.Key_F10
+        }else if (currentKey === "F11") {
+            keyMatch = event.key === Qt.Key_F11
+        }else if (currentKey === "F12") {
+            keyMatch = event.key === Qt.Key_F12
+        }else {
             keyMatch = event.key === currentKey.charCodeAt(0)
         }
 
@@ -194,21 +251,24 @@ Page{
             } else {
 
                 const currentKey = expectedSequence[currentStep]
-
-                activeKeys[currentKey] = true
-
                 var newColors = keyColors.slice()
                 var newText = keyText.slice()
                 newText[currentStep] = keyEventToString(event)
                 newColors[currentStep] = checkKeyPress(event) ? "green" : "red"
+
                 keyColors = newColors
                 keyText = newText
+                activeKeys[currentKey] = true
                 currentStep++
 
                 if (currentStep === expectedSequence.length) {
                     var isallkeys = keyColors.includes("red")
                     attemptedKeys[currentIndex].attempt = true
                     attemptedKeys[currentIndex].correct = !isallkeys
+
+                    attemptedKeys[currentIndex].keypressed= keyText
+                    attemptedKeys[currentIndex].color = keyColors
+
                     showResult(true)
                     nextShortcutTimer.start()
                 }
@@ -291,7 +351,7 @@ Page{
                     color: "green"
                     height: 20
                     width: 50
-                    radius: 5
+                    radius: 2
                     anchors {
                         left: parent.right
                         leftMargin: 10
@@ -304,6 +364,7 @@ Page{
             }
 
             Row {
+                id:keycol
                 spacing: 30
                 anchors {
                     horizontalCenter: keydes.horizontalCenter
@@ -340,10 +401,10 @@ Page{
                 color: "green"
                 font.pixelSize: 24
                 anchors {
-                    right: parent.right
-                    top: parent.top
-                    topMargin: (parent.height / 4)
-                    rightMargin: (parent.width / 3)
+                    right:parent.right
+                    top:keycol.bottom
+                    topMargin: (parent.height/10)
+                    rightMargin: (parent.width/3)
                 }
                 opacity: 0
                 Behavior on opacity {

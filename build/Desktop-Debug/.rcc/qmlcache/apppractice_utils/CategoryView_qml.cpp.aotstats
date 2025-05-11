@@ -30,7 +30,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 16,
-                        "durationMicroseconds": 436,
+                        "durationMicroseconds": 373,
                         "errorMessage": "",
                         "functionName": "width",
                         "line": 23
@@ -38,7 +38,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 18,
-                        "durationMicroseconds": 80,
+                        "durationMicroseconds": 66,
                         "errorMessage": "Cannot retrieve a non-object type by ID: backButton",
                         "functionName": "top",
                         "line": 25
@@ -46,7 +46,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 21,
-                        "durationMicroseconds": 272,
+                        "durationMicroseconds": 233,
                         "errorMessage": "",
                         "functionName": "bottom",
                         "line": 26
@@ -54,7 +54,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 31,
-                        "durationMicroseconds": 264,
+                        "durationMicroseconds": 240,
                         "errorMessage": "",
                         "functionName": "horizontalCenter",
                         "line": 27
@@ -62,7 +62,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 24,
-                        "durationMicroseconds": 44,
+                        "durationMicroseconds": 43,
                         "errorMessage": "Cannot retrieve a non-object type by ID: backButton",
                         "functionName": "topMargin",
                         "line": 28
@@ -70,7 +70,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 27,
-                        "durationMicroseconds": 33,
+                        "durationMicroseconds": 28,
                         "errorMessage": "Cannot retrieve a non-object type by ID: backButton",
                         "functionName": "bottomMargin",
                         "line": 29
@@ -78,7 +78,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 20,
-                        "durationMicroseconds": 199,
+                        "durationMicroseconds": 184,
                         "errorMessage": "",
                         "functionName": "width",
                         "line": 34
@@ -86,7 +86,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 21,
-                        "durationMicroseconds": 318,
+                        "durationMicroseconds": 261,
                         "errorMessage": "",
                         "functionName": "height",
                         "line": 35
@@ -94,7 +94,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 25,
-                        "durationMicroseconds": 79,
+                        "durationMicroseconds": 70,
                         "errorMessage": "Cannot access value for name appsdata",
                         "functionName": "source",
                         "line": 41
@@ -102,7 +102,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 24,
-                        "durationMicroseconds": 322,
+                        "durationMicroseconds": 283,
                         "errorMessage": "",
                         "functionName": "height",
                         "line": 42
@@ -110,7 +110,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 27,
-                        "durationMicroseconds": 191,
+                        "durationMicroseconds": 156,
                         "errorMessage": "",
                         "functionName": "fillMode",
                         "line": 43
@@ -118,7 +118,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 26,
-                        "durationMicroseconds": 272,
+                        "durationMicroseconds": 227,
                         "errorMessage": "",
                         "functionName": "left",
                         "line": 45
@@ -126,7 +126,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 37,
-                        "durationMicroseconds": 276,
+                        "durationMicroseconds": 238,
                         "errorMessage": "",
                         "functionName": "verticalCenter",
                         "line": 46
@@ -134,7 +134,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 23,
-                        "durationMicroseconds": 74,
+                        "durationMicroseconds": 65,
                         "errorMessage": "Cannot access value for name appsdata",
                         "functionName": "text",
                         "line": 51
@@ -142,7 +142,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 35,
-                        "durationMicroseconds": 345,
+                        "durationMicroseconds": 360,
                         "errorMessage": "",
                         "functionName": "pixelSize",
                         "line": 53
@@ -150,7 +150,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 26,
-                        "durationMicroseconds": 274,
+                        "durationMicroseconds": 892,
                         "errorMessage": "",
                         "functionName": "left",
                         "line": 55
@@ -158,7 +158,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 33,
-                        "durationMicroseconds": 321,
+                        "durationMicroseconds": 546,
                         "errorMessage": "",
                         "functionName": "leftMargin",
                         "line": 56
@@ -166,7 +166,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 37,
-                        "durationMicroseconds": 258,
+                        "durationMicroseconds": 265,
                         "errorMessage": "",
                         "functionName": "verticalCenter",
                         "line": 57
@@ -174,7 +174,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 20,
-                        "durationMicroseconds": 188,
+                        "durationMicroseconds": 184,
                         "errorMessage": "",
                         "functionName": "width",
                         "line": 64
@@ -182,7 +182,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 21,
-                        "durationMicroseconds": 316,
+                        "durationMicroseconds": 288,
                         "errorMessage": "",
                         "functionName": "height",
                         "line": 65
@@ -190,7 +190,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 22,
-                        "durationMicroseconds": 254,
+                        "durationMicroseconds": 246,
                         "errorMessage": "",
                         "functionName": "top",
                         "line": 69
@@ -198,7 +198,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 24,
-                        "durationMicroseconds": 2,
+                        "durationMicroseconds": 1,
                         "errorMessage": "Cannot resolve property type  for binding on height.",
                         "functionName": "height",
                         "line": 75
@@ -246,7 +246,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 37,
-                        "durationMicroseconds": 392,
+                        "durationMicroseconds": 365,
                         "errorMessage": "",
                         "functionName": "pixelSize",
                         "line": 92
@@ -254,7 +254,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 33,
-                        "durationMicroseconds": 280,
+                        "durationMicroseconds": 260,
                         "errorMessage": "",
                         "functionName": "left",
                         "line": 94
@@ -262,7 +262,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 35,
-                        "durationMicroseconds": 312,
+                        "durationMicroseconds": 260,
                         "errorMessage": "",
                         "functionName": "bottom",
                         "line": 95
@@ -270,7 +270,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 39,
-                        "durationMicroseconds": 321,
+                        "durationMicroseconds": 313,
                         "errorMessage": "",
                         "functionName": "leftMargin",
                         "line": 96
@@ -278,7 +278,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 40,
-                        "durationMicroseconds": 295,
+                        "durationMicroseconds": 293,
                         "errorMessage": "",
                         "functionName": "bottomMargin",
                         "line": 97
@@ -286,7 +286,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 22,
-                        "durationMicroseconds": 256,
+                        "durationMicroseconds": 249,
                         "errorMessage": "",
                         "functionName": "top",
                         "line": 105
@@ -294,7 +294,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 25,
-                        "durationMicroseconds": 239,
+                        "durationMicroseconds": 241,
                         "errorMessage": "",
                         "functionName": "bottom",
                         "line": 106
@@ -302,7 +302,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 23,
-                        "durationMicroseconds": 243,
+                        "durationMicroseconds": 241,
                         "errorMessage": "",
                         "functionName": "left",
                         "line": 107
@@ -310,7 +310,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 24,
-                        "durationMicroseconds": 259,
+                        "durationMicroseconds": 232,
                         "errorMessage": "",
                         "functionName": "right",
                         "line": 108
@@ -318,7 +318,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 20,
-                        "durationMicroseconds": 101,
+                        "durationMicroseconds": 79,
                         "errorMessage": "Cannot access value for name appsdata",
                         "functionName": "model",
                         "line": 112
@@ -326,7 +326,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 27,
-                        "durationMicroseconds": 134,
+                        "durationMicroseconds": 251,
                         "errorMessage": "",
                         "functionName": "fill",
                         "line": 115
@@ -334,7 +334,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 24,
-                        "durationMicroseconds": 181,
+                        "durationMicroseconds": 185,
                         "errorMessage": "",
                         "functionName": "width",
                         "line": 118
@@ -342,7 +342,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 27,
-                        "durationMicroseconds": 651,
+                        "durationMicroseconds": 512,
                         "errorMessage": "Cannot access value for name modelData",
                         "functionName": "text",
                         "line": 124
@@ -350,7 +350,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 39,
-                        "durationMicroseconds": 337,
+                        "durationMicroseconds": 323,
                         "errorMessage": "",
                         "functionName": "pixelSize",
                         "line": 126
@@ -358,7 +358,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 45,
-                        "durationMicroseconds": 275,
+                        "durationMicroseconds": 335,
                         "errorMessage": "",
                         "functionName": "verticalCenter",
                         "line": 127
@@ -366,7 +366,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 35,
-                        "durationMicroseconds": 234,
+                        "durationMicroseconds": 241,
                         "errorMessage": "",
                         "functionName": "left",
                         "line": 128
@@ -374,7 +374,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 27,
-                        "durationMicroseconds": 110,
+                        "durationMicroseconds": 91,
                         "errorMessage": "Cannot access value for name donecount",
                         "functionName": "text",
                         "line": 133
@@ -382,7 +382,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 39,
-                        "durationMicroseconds": 370,
+                        "durationMicroseconds": 304,
                         "errorMessage": "",
                         "functionName": "pixelSize",
                         "line": 135
@@ -390,7 +390,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 45,
-                        "durationMicroseconds": 259,
+                        "durationMicroseconds": 240,
                         "errorMessage": "",
                         "functionName": "verticalCenter",
                         "line": 136
@@ -398,7 +398,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 36,
-                        "durationMicroseconds": 238,
+                        "durationMicroseconds": 253,
                         "errorMessage": "",
                         "functionName": "right",
                         "line": 137
@@ -406,7 +406,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 42,
-                        "durationMicroseconds": 335,
+                        "durationMicroseconds": 289,
                         "errorMessage": "",
                         "functionName": "rightMargin",
                         "line": 138
@@ -414,7 +414,7 @@
                     {
                         "codegenSuccessfull": false,
                         "column": 32,
-                        "durationMicroseconds": 114,
+                        "durationMicroseconds": 88,
                         "errorMessage": "Cannot access value for name stackView",
                         "functionName": "onClicked",
                         "line": 143
@@ -422,7 +422,7 @@
                     {
                         "codegenSuccessfull": true,
                         "column": 35,
-                        "durationMicroseconds": 127,
+                        "durationMicroseconds": 123,
                         "errorMessage": "",
                         "functionName": "fill",
                         "line": 142

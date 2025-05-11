@@ -8,6 +8,7 @@
     <file alias="utils/Testground.qml">/home/anujs/practice/utils/Testground.qml</file>
     <file alias="vstestdata.js">/home/anujs/practice/vstestdata.js</file>
     <file alias="utils/Result.qml">/home/anujs/practice/utils/Result.qml</file>
+    <file alias="utils/KeyAnalysis.qml">/home/anujs/practice/utils/KeyAnalysis.qml</file>
     <file alias="Resource.qrc">/home/anujs/practice/Resource.qrc</file>
   </qresource>
 </RCC>

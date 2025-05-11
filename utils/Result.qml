@@ -9,9 +9,9 @@ Rectangle{
      color:"black"
      visible: true
 
+     required property var appsdata
      required property StackView stackView
      required property var attemptedKeys
-     required property int count
      property int correctkey: 0
      property int wrongkey: 0
 
@@ -29,22 +29,65 @@ Rectangle{
     Component.onCompleted: updateKeyCounts()
     onAttemptedKeysChanged: updateKeyCounts()
 
-    Rectangle{
-             height:70
-             width:70
-             Text {
-                      text: `${wrongkey} + ${correctkey}`
-                      color:"black"
-             }
+    Button {
+        id: backButton
+        text: "Back"
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: 10
+        onClicked: stackView.pop()
     }
+
+    Row {
+          visible: true
+          spacing: parent.width/2
+          anchors{
+                 top: parent.top
+                 topMargin: parent.height/10
+                horizontalCenter: parent.horizontalCenter
+            }
+         Text {
+                id: score
+                text: "Score : " + `${4*correctkey-wrongkey}/${4*attemptedKeys.length}`
+                font.bold: true
+                font.pixelSize: 35
+                color:"white"
+             }
+         Rectangle{
+                  id:keyAnalysis
+                  height:50
+                  width:100
+                  radius: 5
+                  color:"yellow"
+           Text {
+                anchors.centerIn: parent
+                id: mark
+                text: "Key Analysis"
+                font.bold: true
+                font.pixelSize: 16
+                color:"red"
+             }
+           MouseArea {
+               anchors.fill: parent
+               onClicked: {
+                   stackView.push("KeyAnalysis.qml", {
+                      attemptedKeys:attemptedKeys,
+                       appsdata:appsdata,
+                       stackView: stackView
+                   })
+               }
+           }
+         }
+       }
+
 
      Shape{
          id:shape
 
          property real progress: 0.0
          anchors.centerIn: parent
-         width:200
-         height:200
+         width:300
+         height:300
 
          smooth:true
          antialiasing: true
@@ -52,6 +95,7 @@ Rectangle{
              strokeWidth: 30
              fillColor: root.color
              strokeColor: "#7cfc00"
+
              PathAngleArc{
                  centerX: shape.width/2
                  centerY: shape.height/2
@@ -77,9 +121,42 @@ Rectangle{
         target: shape
         property: "progress"
         from: 0.0
-        to:wrongkey/attemptedKeys.length
+        to:correctkey/attemptedKeys.length
         duration: 3000
         running: true
     }
+
+    Row {
+          visible: true
+          spacing: parent.width/3
+          anchors{
+                bottom: parent.bottom
+                bottomMargin: parent.height/10
+                horizontalCenter: parent.horizontalCenter
+            }
+         Text {
+                id: correct
+                text: "Correct:" + `${correctkey}`
+                font.bold: true
+                font.pixelSize: 25
+                color:"green"
+             }
+         Text {
+                id: wrong
+                text: "Wrong:" + `${wrongkey}`
+                font.bold: true
+                font.pixelSize: 25
+                color:"red"
+             }
+       Text {
+              id: notattempt
+              text: "Notattempt:" + `${attemptedKeys.length-wrongkey-correctkey}`
+              font.bold: true
+              font.pixelSize: 25
+              color:"yellow"
+             }
+       }
+
 }
+
 
