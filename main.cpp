@@ -1,5 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include "DataStore.h"
 
 int main(int argc, char *argv[])
 {
@@ -8,6 +10,9 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
+
+    DataStore store;
+    engine.rootContext()->setContextProperty("Store", &store);
 
     QObject::connect(
         &engine,

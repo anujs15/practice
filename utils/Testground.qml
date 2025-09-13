@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "../learningState.js" as Learning
 
 Page{
 
@@ -61,6 +62,10 @@ Page{
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                // store the attempted keys for this app into global learning state
+                if (appsdata && appsdata.id) {
+                    Learning.Learning.setLearning(appsdata.id, attemptedKeys)
+                }
                 stackView.push("Result.qml", {
                     attemptedKeys:attemptedKeys,
                     appsdata:appsdata,

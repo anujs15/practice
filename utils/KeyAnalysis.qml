@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "../learningState.js" as Learning
 
 Rectangle {
     id: main
@@ -8,6 +9,12 @@ Rectangle {
     required property var appsdata
     required property StackView stackView
     required property var attemptedKeys
+    Component.onCompleted: {
+        if ((!attemptedKeys || attemptedKeys.length === 0) && appsdata && appsdata.id) {
+            var map = Learning.Learning.getAll()
+            if (map && map[appsdata.id]) attemptedKeys = map[appsdata.id]
+        }
+    }
 
     Button {
         id: backButton

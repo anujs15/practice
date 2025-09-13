@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Shapes
 import QtQuick.Controls 2.15
+import "../learningState.js" as Learning
 
 Rectangle{
      id:root
@@ -11,7 +12,7 @@ Rectangle{
 
      required property var appsdata
      required property StackView stackView
-     required property var attemptedKeys
+    required property var attemptedKeys
      property int correctkey: 0
      property int wrongkey: 0
 
@@ -26,7 +27,13 @@ Rectangle{
          wrongkey = wrong;
      }
 
-    Component.onCompleted: updateKeyCounts()
+    Component.onCompleted: {
+        if ((!attemptedKeys || attemptedKeys.length === 0) && appsdata && appsdata.id) {
+            var map = Learning.Learning.getAll()
+            if (map && map[appsdata.id]) attemptedKeys = map[appsdata.id]
+        }
+        updateKeyCounts()
+    }
     onAttemptedKeysChanged: updateKeyCounts()
 
     Button {
