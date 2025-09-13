@@ -2,6 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import "../learningState.js" as Learning
+import "../profile.js" as Profile
+import "../keydata.js" as Fn
 
 Page{
 
@@ -65,6 +67,13 @@ Page{
                 // store the attempted keys for this app into global learning state
                 if (appsdata && appsdata.id) {
                     Learning.Learning.setLearning(appsdata.id, attemptedKeys)
+                }
+                // autosave learning to profile
+                var p = Store.lastProfilePath()
+                if (!p || p === "") p = Store.defaultProfilePath()
+                var payload = Profile.collect(Fn.appsdata, Learning.Learning.getAll())
+                if (Store.saveProfile(p, Profile.stringify(payload))) {
+                    Store.setLastProfilePath(p)
                 }
                 stackView.push("Result.qml", {
                     attemptedKeys:attemptedKeys,
