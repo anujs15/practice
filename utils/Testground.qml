@@ -85,6 +85,13 @@ Page{
     }
 
     Component.onCompleted: {
+        // load any saved attempts for this app
+        if (appsdata && appsdata.id) {
+            var map = Learning.Learning.getAll()
+            if (map && map[appsdata.id]) {
+                attemptedKeys = map[appsdata.id]
+            }
+        }
         resetSequence()
         keyHandler.forceActiveFocus()
     }
