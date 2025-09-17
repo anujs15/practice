@@ -155,8 +155,8 @@ Rectangle {
                             }
                             text: modelData.title
                             color: attemptedKeys[currentIndex].correct ? "green"
-                                   : attemptedKeys[currentIndex].attempt ? "red"
-                                   : "darkbalck"
+                                : attemptedKeys[currentIndex].attempt ? "red"
+                                : "#222222"
                             font.pixelSize: 20
                             font.bold: true
                         }
