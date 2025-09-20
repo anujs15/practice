@@ -1,6 +1,9 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import "../learningState.js" as Learning
+import "../profile.js" as Profile
+import "../keydata.js" as Fn
 
 Page{
 
@@ -38,7 +41,10 @@ Page{
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: 10
-        onClicked: stackView.pop()
+        onClicked: {
+            if (appsdata && appsdata.id) saveLearning()
+            stackView.pop()
+        }
     }
 
     Rectangle{
@@ -61,6 +67,17 @@ Page{
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                // store the attempted keys for this app into global learning state
+                if (appsdata && appsdata.id) {
+                    Learning.Learning.setLearning(appsdata.id, attemptedKeys)
+                }
+                // autosave learning to profile
+                var p = Store.lastProfilePath()
+                if (!p || p === "") p = Store.defaultProfilePath()
+                var payload = Profile.collect(Fn.appsdata, Learning.Learning.getAll())
+                if (Store.saveProfile(p, Profile.stringify(payload))) {
+                    Store.setLastProfilePath(p)
+                }
                 stackView.push("Result.qml", {
                     attemptedKeys:attemptedKeys,
                     appsdata:appsdata,
@@ -71,6 +88,13 @@ Page{
     }
 
     Component.onCompleted: {
+        // load any saved attempts for this app
+        if (appsdata && appsdata.id) {
+            var map = Learning.Learning.getAll()
+            if (map && map[appsdata.id]) {
+                attemptedKeys = map[appsdata.id]
+            }
+        }
         resetSequence()
         keyHandler.forceActiveFocus()
     }
@@ -185,14 +209,14 @@ Page{
         }else if (currentKey === "Space") {
             keyMatch = event.key === Qt.Key_Space
         }else if (currentKey === "Tab") {
-            keyMatch = event.key === Qt.Qt.Key_Tab
+            keyMatch = event.key === Qt.Key_Tab
         }else if (currentKey === "Backtab") {
             keyMatch = event.key === Qt.Key_Backtab
         }else if (currentKey === "Backspace") {
             keyMatch = event.key === Qt.Key_Backspace
         }else if (currentKey === "Delete") {
             keyMatch = event.key === Qt.Key_Delete
-        }else if (currentKey === "Inser") {
+        }else if (currentKey === "Insert") {
             keyMatch = event.key === Qt.Key_Insert
         }else if (currentKey === "Home") {
             keyMatch = event.key === Qt.Key_Home
@@ -233,6 +257,19 @@ Page{
         return keyMatch && !activeKeys[currentKey]
     }
 
+    function saveLearning() {
+        if (!(appsdata && appsdata.id)) return
+        // update global in-memory learning map
+        Learning.Learning.setLearning(appsdata.id, attemptedKeys)
+        // persist to profile file
+        var p = Store.lastProfilePath()
+        if (!p || p === "") p = Store.defaultProfilePath()
+        var payload = Profile.collect(Fn.appsdata, Learning.Learning.getAll())
+        if (Store.saveProfile(p, Profile.stringify(payload))) {
+            Store.setLastProfilePath(p)
+        }
+    }
+
     Rectangle {
         id: keyHandler
         anchors.fill: parent
@@ -268,6 +305,9 @@ Page{
 
                     attemptedKeys[currentIndex].keypressed= keyText
                     attemptedKeys[currentIndex].color = keyColors
+
+                    // autosave on attempt completion
+                    saveLearning()
 
                     showResult(true)
                     nextShortcutTimer.start()
@@ -376,8 +416,8 @@ Page{
                     model: appsdata.test[currentIndex].keys
                     delegate: Rectangle {
                         id: keyrect
-                        width: keyColors[index] === "green" ? 70 : keyColors[index]=== "red" ? 70 : 60
-                        height: keyColors[index]=== "green" ? 50 : keyColors[index] === "red" ? 50 : 40
+                        width: 60
+                        height: 40
 
                         color: keyColors[index] === "green" ? "white" : keyColors[index]=== "red" ? "white" : "black"
                         border.color: keyColors[index]=== "green" ? "white" : keyColors[index]=== "red" ? "white" : "gray"

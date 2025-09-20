@@ -11,6 +11,7 @@ qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(apppractice
     main.cpp
+    DataStore.cpp
 )
 
 qt_add_qml_module(apppractice
@@ -31,6 +32,9 @@ qt_add_qml_module(apppractice
         QML_FILES vstestdata.js
         QML_FILES utils/Result.qml
         QML_FILES utils/KeyAnalysis.qml
+    QML_FILES utils/Profile.qml
+    QML_FILES profile.js
+    QML_FILES learningState.js
         QML_FILES
 )
 

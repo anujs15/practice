@@ -10,6 +10,26 @@ Rectangle {
     required property var appsdata
     required property StackView stackView
 
+        // profile access button (top-right)
+        Rectangle {
+            id: profileBtn
+            width: 100
+            height: 36
+            radius: 6
+            color: "#444444"
+            anchors {
+                right: parent.right
+                top: parent.top
+                rightMargin: 10
+                topMargin: 10
+            }
+            Text { anchors.centerIn: parent; text: "Profile"; color: "white"; font.pixelSize: 14; font.bold: true }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: stackView.push("Profile.qml", { appsdata: appsdata, stackView: stackView })
+            }
+        }
+
         GridLayout {
             id: gridLayout
             columns: 2

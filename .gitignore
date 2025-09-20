@@ -1,0 +1,5 @@
+# Ignore local build output
+/build/
+
+# Ignore IDE/user-specific CMake file
+CMakeLists.txt.user
