@@ -83,14 +83,19 @@ Rectangle{
         running: true
     }
 
+    Button {
+        id: backButton
+        text: "Back"
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: 10
+        onClicked: if (stackView) stackView.pop()
+    }
+
     Row {
           visible: true
           spacing: parent.width/3
-          anchors{
-                bottom: parent.bottom
-                bottomMargin: parent.height/10
-                horizontalCenter: parent.horizontalCenter
-            }
+          anchors.centerIn: parent
          Text {
                 id: correct
                 text: "Correct: " + correctkey

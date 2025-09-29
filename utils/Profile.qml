@@ -12,6 +12,7 @@ Page {
     required property StackView stackView
     // map: appId -> attemptedKeys[] captured from Testground or Result screens
     property var learning: ({})
+    property bool importMode: false
 
     background: Rectangle { color: "black" }
 
@@ -391,10 +392,8 @@ Page {
             ListView {
                 id: aliasList
                 model: aliasModel
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
+                width: parent.width
+                height: parent.height - 120
                 clip: true
                 delegate: Rectangle {
                     width: parent.width
