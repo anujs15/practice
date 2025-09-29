@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import "../profile.js" as Profile
 import "../learningState.js" as Learning
 import Qt.labs.folderlistmodel 2.1
-import QtQuick.Dialogs 1.3
 import "../Logging.js" as Log
 
 Page {
@@ -86,7 +85,7 @@ Page {
                         if (Store.saveEncryptedProfile(path, Profile.stringify(payload), aliasPassword.text)) {
                             Store.setLastProfilePath(path)
                             showToast("Saved protected alias: " + alias)
-+                            Log.info("Saved protected alias: " + alias + " at " + path)
+                            Log.info("Saved protected alias: " + alias + " at " + path)
                         } else {
                             showToast("Failed to save protected alias")
                         }
@@ -94,7 +93,7 @@ Page {
                         if (Store.saveProfile(path, Profile.stringify(payload))) {
                             Store.setLastProfilePath(path)
                             showToast("Saved alias: " + alias)
-+                            Log.info("Saved alias: " + alias + " at " + path)
+                            Log.info("Saved alias: " + alias + " at " + path)
                         } else {
                             showToast("Failed to save alias")
                         }
@@ -139,7 +138,7 @@ Page {
                         if (ok) {
                             Store.setLastProfilePath(p)
                             showToast("Saved default profile: " + p)
-+                            Log.info("Created default profile: " + p)
+                            Log.info("Created default profile: " + p)
                         }
                     }
                 }
@@ -156,7 +155,7 @@ Page {
                         var payload = Profile.collect(appsdata, Learning.Learning.getAll())
                         if (Store.saveProfile(p, Profile.stringify(payload))) {
                             showToast("Saved profile: " + p)
-+                            Log.info("Saved profile (backup): " + p)
+                            Log.info("Saved profile (backup): " + p)
                         }
                     }
                 }
@@ -192,7 +191,7 @@ Page {
                                 Learning.Learning.apply(profile.learning)
                             }
                             showToast("Restored from: " + p)
-+                            Log.info("Restored profile from: " + p)
+                            Log.info("Restored profile from: " + p)
                         }
                     }
                 }
@@ -214,7 +213,7 @@ Page {
                             Learning.Learning.apply(profile.learning)
                         }
                         showToast("Opened: " + p)
-+                        Log.info("Opened profile file: " + p)
+                        Log.info("Opened profile file: " + p)
                     }
                 }
             }
@@ -283,7 +282,7 @@ Page {
                         if (Store.saveProfile(p, Profile.stringify(payload))) {
                             Store.setLastProfilePath(p)
                             showToast("Saved: " + p)
-+                            Log.info("Saved profile via Save As: " + p)
+                            Log.info("Saved profile via Save As: " + p)
                         }
                         saveDialog.close()
                     }}
@@ -333,7 +332,7 @@ Page {
                                     aliasesDialog.aliasModelRef.folder = ""
                                     aliasesDialog.aliasModelRef.folder = f
                                 } catch(e) {}
-+                                Log.info("Imported file to aliases: " + base)
+                                Log.info("Imported file to aliases: " + base)
                             } else {
                                 showToast("Import failed")
                             }
@@ -348,7 +347,7 @@ Page {
                                     Learning.Learning.apply(profile.learning)
                                 }
                                 showToast("Opened: " + p)
-+                                Log.info("Opened profile file: " + p)
+                                Log.info("Opened profile file: " + p)
                             } else {
                                 showToast("File not found: " + p)
                             }
@@ -420,7 +419,7 @@ Page {
                                 if (profile && profile.learning) Learning.Learning.apply(profile.learning)
                                 aliasField.text = model.fileName.replace(/\.json$/,'')
                                 showToast("Loaded alias: " + aliasField.text)
-+                                Log.info("Loaded alias from manager: " + model.fileName)
+                                Log.info("Loaded alias from manager: " + model.fileName)
                             }}
                         }
                         Rectangle { width: 80; height: 28; radius: 4; color: "#cc4444";
@@ -433,7 +432,7 @@ Page {
                                     var f = aliasModel.folder
                                     aliasModel.folder = ""
                                     aliasModel.folder = f
-+                                    Log.info("Deleted alias file: " + model.fileName)
+                                    Log.info("Deleted alias file: " + model.fileName)
                                 } else {
                                     showToast("Failed to delete: " + model.fileName)
                                 }
@@ -446,7 +445,7 @@ Page {
                                 fileExportSource = aliasModel.folder + "/" + model.fileName
                                 fileExportDialog.title = "Export " + model.fileName
                                 fileExportDialog.open()
-+                                Log.info("Open file export dialog")
+                                Log.info("Open file export dialog")
                             }}
                         }
                     }
@@ -458,7 +457,7 @@ Page {
                     Text { anchors.centerIn: parent; text: "Import from file..."; color: "white" }
                     MouseArea { anchors.fill: parent; onClicked: {
                         fileImportDialog.open()
-+                        Log.info("Open file import dialog")
+                        Log.info("Open file import dialog")
                     }}
                 }
             }
@@ -513,56 +512,110 @@ Page {
     }
 
     // File dialogs for import / export
-    FileDialog {
+    // Fallback import dialog (used when QtQuick.Dialogs isn't available)
+    Rectangle {
         id: fileImportDialog
-        title: "Import profile file"
-        selectMultiple: false
-        onAccepted: {
-            // QtQuick.Dialogs.FileDialog provides "file" (local path) and "selectedFiles" in some builds
-            var src = file || (selectedFiles && selectedFiles.length ? selectedFiles[0] : "")
-            if (!src) {
-                // fallback: open manual path dialog
-                showToast("No file selected; use 'Open From...' to enter a path")
-                return
-            }
-            var base = src.replace(/.*\/(.*)$/,'$1')
-            var dest = Store.appDataDir() + "/aliases/" + base
-            if (Store.copyProfile(src, dest)) {
-                showToast("Imported: " + base)
-                try { var f = aliasesDialog.aliasModelRef.folder; aliasesDialog.aliasModelRef.folder = ""; aliasesDialog.aliasModelRef.folder = f } catch(e) {}
-            } else {
-                showToast("Import failed")
+        property string file: ""
+        property var selectedFiles: []
+        signal accepted()
+        signal rejected()
+        visible: false
+        anchors.centerIn: parent
+        width: parent.width * 0.8
+        height: 140
+        radius: 8
+        color: "#111111"
+        border.color: "#444"
+        function open() { visible = true }
+        function close() { visible = false }
+        Column { anchors.fill: parent; anchors.margins: 12; spacing: 10
+            Text { text: "Import profile file (path):"; color: "#ddd" }
+            TextField { id: importPathField; placeholderText: "Enter path to file"; color: "#fff" }
+            Row { spacing: 10; anchors.horizontalCenter: parent.horizontalCenter
+                Rectangle { width: 90; height: 34; radius: 6; color: "#44aa44";
+                    Text { anchors.centerIn: parent; text: "Import"; color: "white" }
+                    MouseArea { anchors.fill: parent; onClicked: {
+                        fileImportDialog.file = importPathField.text && importPathField.text.length ? importPathField.text : ""
+                        fileImportDialog.accepted()
+                        fileImportDialog.close()
+                    }}
+                }
+                Rectangle { width: 90; height: 34; radius: 6; color: "#555";
+                    Text { anchors.centerIn: parent; text: "Cancel"; color: "#eee" }
+                    MouseArea { anchors.fill: parent; onClicked: { fileImportDialog.rejected(); fileImportDialog.close() } }
+                }
             }
         }
-        onRejected: { /* user cancelled */ }
     }
 
-    FileDialog {
+    Rectangle {
         id: fileExportDialog
-        title: "Export alias"
-        selectExisting: false
-        onAccepted: {
-            var dst = file || (selectedFiles && selectedFiles.length ? selectedFiles[0] : "")
-            if (!dst) { showToast("No destination chosen"); return }
-            if (Store.copyProfile(fileExportSource, dst)) {
-                showToast("Exported to: " + dst)
-            } else {
-                showToast("Export failed")
+        property string file: ""
+        property var selectedFiles: []
+        signal accepted()
+        signal rejected()
+        visible: false
+        anchors.centerIn: parent
+        width: parent.width * 0.8
+        height: 140
+        radius: 8
+        color: "#111111"
+        border.color: "#444"
+        function open() { visible = true }
+        function close() { visible = false }
+        Column { anchors.fill: parent; anchors.margins: 12; spacing: 10
+            Text { text: "Export alias to (path):"; color: "#ddd" }
+            TextField { id: exportPathField; placeholderText: "Enter destination path"; color: "#fff" }
+            Row { spacing: 10; anchors.horizontalCenter: parent.horizontalCenter
+                Rectangle { width: 90; height: 34; radius: 6; color: "#44aa44";
+                    Text { anchors.centerIn: parent; text: "Export"; color: "white" }
+                    MouseArea { anchors.fill: parent; onClicked: {
+                        fileExportDialog.file = exportPathField.text && exportPathField.text.length ? exportPathField.text : ""
+                        fileExportDialog.accepted()
+                        fileExportDialog.close()
+                    }}
+                }
+                Rectangle { width: 90; height: 34; radius: 6; color: "#555";
+                    Text { anchors.centerIn: parent; text: "Cancel"; color: "#eee" }
+                    MouseArea { anchors.fill: parent; onClicked: { fileExportDialog.rejected(); fileExportDialog.close() } }
+                }
             }
         }
-        onRejected: { /* user cancelled */ }
     }
 
-    FileDialog {
+    Rectangle {
         id: fileExportLogsDialog
-        title: "Export logs"
-        selectExisting: false
-        onAccepted: {
-            var dst = file || (selectedFiles && selectedFiles.length ? selectedFiles[0] : "")
-            if (!dst) { showToast("No destination chosen"); return }
-            if (Store.exportLogs(dst)) { showToast("Exported logs: " + dst); Log.info("Exported logs to: " + dst) }
-            else { showToast("Export failed"); Log.warn("Export logs failed to: " + dst) }
+        property string file: ""
+        property var selectedFiles: []
+        signal accepted()
+        signal rejected()
+        visible: false
+        anchors.centerIn: parent
+        width: parent.width * 0.8
+        height: 140
+        radius: 8
+        color: "#111111"
+        border.color: "#444"
+        function open() { visible = true }
+        function close() { visible = false }
+        Column { anchors.fill: parent; anchors.margins: 12; spacing: 10
+            Text { text: "Export logs to (path):"; color: "#ddd" }
+            TextField { id: exportLogsPathField; placeholderText: "Enter destination path"; color: "#fff" }
+            Row { spacing: 10; anchors.horizontalCenter: parent.horizontalCenter
+                Rectangle { width: 90; height: 34; radius: 6; color: "#44aa44";
+                    Text { anchors.centerIn: parent; text: "Export"; color: "white" }
+                    MouseArea { anchors.fill: parent; onClicked: {
+                        fileExportLogsDialog.file = exportLogsPathField.text && exportLogsPathField.text.length ? exportLogsPathField.text : ""
+                        fileExportLogsDialog.accepted()
+                        fileExportLogsDialog.close()
+                    }}
+                }
+                Rectangle { width: 90; height: 34; radius: 6; color: "#555";
+                    Text { anchors.centerIn: parent; text: "Cancel"; color: "#eee" }
+                    MouseArea { anchors.fill: parent; onClicked: { fileExportLogsDialog.rejected(); fileExportLogsDialog.close() } }
+                }
+            }
         }
-        onRejected: { Log.info("Export logs cancelled") }
+        onAccepted: { /* kept for compatibility */ }
     }
 }

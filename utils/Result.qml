@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
-import QtQuick.Shapes
+import QtQuick.Shapes 1.15
 import QtQuick.Controls 2.15
 import "../learningState.js" as Learning
 import "../Logging.js" as Log
@@ -11,9 +11,10 @@ Rectangle{
      color:"black"
      visible: true
 
-     required property var appsdata
-     required property StackView stackView
-    required property var attemptedKeys
+     // make properties optional and provide safe defaults so component can instantiate
+     property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+     property var stackView: null
+     property var attemptedKeys: []
      property int correctkey: 0
      property int wrongkey: 0
 
@@ -34,71 +35,7 @@ Rectangle{
             if (map && map[appsdata.id]) attemptedKeys = map[appsdata.id]
         }
         updateKeyCounts()
-    }
-    onAttemptedKeysChanged: updateKeyCounts()
-
-    Button {
-        id: backButton
-        text: "Back"
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.margins: 10
-        onClicked: {
-            Log.info("Result Back pressed for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
-            stackView.pop()
-        }
-    }
-
-    Row {
-          visible: true
-          spacing: parent.width/2
-          anchors{
-                 top: parent.top
-                 topMargin: parent.height/10
-                horizontalCenter: parent.horizontalCenter
-            }
-         Text {
-                id: score
-                text: "Score : " + `${4*correctkey-wrongkey}/${4*attemptedKeys.length}`
-                font.bold: true
-                font.pixelSize: 35
-                color:"white"
-             }
-         Rectangle{
-                  id:keyAnalysis
-                  height:50
-                  width:100
-                  radius: 5
-                  color:"yellow"
-           Text {
-                anchors.centerIn: parent
-                id: mark
-                text: "Key Analysis"
-                font.bold: true
-                font.pixelSize: 16
-                color:"red"
-             }
-           MouseArea {
-               anchors.fill: parent
-               onClicked: {
-                   Log.info("Open KeyAnalysis for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
-                   stackView.push("KeyAnalysis.qml", {
-                      attemptedKeys:attemptedKeys,
-                       appsdata:appsdata,
-                       stackView: stackView
-                   })
-               }
-           }
-         }
-       }
-
-    Component.onCompleted: {
-        if ((!attemptedKeys || attemptedKeys.length === 0) && appsdata && appsdata.id) {
-            var map = Learning.Learning.getAll()
-            if (map && map[appsdata.id]) attemptedKeys = map[appsdata.id]
-        }
-        updateKeyCounts()
-+        Log.info("Result page opened for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
+        Log.info("Result page opened for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
     }
 
      Shape{
@@ -141,8 +78,7 @@ Rectangle{
         target: shape
         property: "progress"
         from: 0.0
--        to:correctkey/attemptedKeys.length
-+        to: (attemptedKeys && attemptedKeys.length > 0) ? (correctkey/attemptedKeys.length) : 0.0
+        to: (attemptedKeys && attemptedKeys.length > 0) ? (correctkey/attemptedKeys.length) : 0.0
         duration: 3000
         running: true
     }
@@ -157,21 +93,21 @@ Rectangle{
             }
          Text {
                 id: correct
-                text: "Correct:" + `${correctkey}`
+                text: "Correct: " + correctkey
                 font.bold: true
                 font.pixelSize: 25
                 color:"green"
              }
          Text {
                 id: wrong
-                text: "Wrong:" + `${wrongkey}`
+                text: "Wrong: " + wrongkey
                 font.bold: true
                 font.pixelSize: 25
                 color:"red"
              }
        Text {
               id: notattempt
-              text: "Notattempt:" + `${attemptedKeys.length-wrongkey-correctkey}`
+              text: "Notattempt: " + ((attemptedKeys ? attemptedKeys.length : 0) - wrongkey - correctkey)
               font.bold: true
               font.pixelSize: 25
               color:"yellow"

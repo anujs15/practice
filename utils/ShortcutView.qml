@@ -1,13 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import "../Logging.js" as Log
+import "../learningState.js" as Learning
 
 Page {
+    id: shortcutPage
 
-    anchors.fill: parent
-
-    required property var appsdata
-    required property StackView stackView
+    property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+    property var stackView: null
 
     background: Rectangle{
         color: "black"
@@ -18,8 +18,12 @@ Page {
     property var expectedSequence: []
     property int currentStep: 0
     property var keyColors: []
+    property var keyText: []
+    property var attemptedKeys: []
     property int count:1
     property bool skipright:true
+    // allow CategoryView to pass and read done counts
+    property int donecount: 0
 
     Button {
         id: backButton
@@ -32,6 +36,7 @@ Page {
 
     Component.onCompleted: {
         resetSequence()
+        try { attemptedKeys = (Learning && Learning.getAll && Learning.getAll()[appsdata && appsdata.id]) ? Learning.getAll()[appsdata.id] : [] } catch(e) { attemptedKeys = [] }
         keyHandler.forceActiveFocus()
         Log.info("ShortcutView opened for: " + (appsdata && appsdata.title ? appsdata.title : "unknown"))
     }
@@ -128,7 +133,7 @@ Page {
         color: "transparent"
         Keys.enabled: true
 
-        Keys.onPressed: {
+        Keys.onPressed: function(event) {
             if (event.isAutoRepeat) return
 
             if (event.key === Qt.Key_Escape) {
@@ -164,7 +169,7 @@ Page {
             }
         }
 
-        Keys.onReleased: {
+        Keys.onReleased: function(event) {
             const releasedKey = Object.keys(activeKeys).find(key =>
                 (key === "Ctrl" && !(event.modifiers & Qt.ControlModifier)) ||
                 (key === "Shift" && !(event.modifiers & Qt.ShiftModifier)) ||
@@ -207,103 +212,93 @@ Page {
                 id: text
                 font.pointSize: 18
                 anchors.centerIn: parent
-                text:  `${count}/${appsdata.shortcuts.length}`
+                text:  shortcutPage.count + "/" + ((shortcutPage.appsdata && shortcutPage.appsdata.shortcuts) ? shortcutPage.appsdata.shortcuts.length : 0)
                 color: "white"
             }
         }
 
+        // Column layout -- replace malformed block with a clean, anchor-safe Column
         Column {
-            id:main
-            width:parent.width
+            id: main
+            width: parent.width
             height: parent.height
             spacing: 40
-            anchors{
+            anchors {
                 horizontalCenter: parent.horizontalCenter
                 top: parent.top
-                topMargin: parent.height/3
+                topMargin: 0
             }
 
+            // spacer to provide top offset safely inside Column
+            Item { height: parent.height / 3 }
+
             Text {
-                id:keydes
-                text: appsdata.shortcuts[currentIndex].title
-                color: "white"
+                id: keydes
+                text: appsdata.shortcuts && appsdata.shortcuts[currentIndex] ? appsdata.shortcuts[currentIndex].title : ""
+                color: (shortcutPage.keyColors && shortcutPage.keyColors[shortcutPage.currentIndex] && shortcutPage.keyColors[shortcutPage.currentIndex] === "green") ? "black" : (shortcutPage.attemptedKeys && shortcutPage.attemptedKeys[shortcutPage.currentIndex] && shortcutPage.attemptedKeys[shortcutPage.currentIndex].attempt ? "gray" : "white")
                 font { pixelSize: 48; bold: true }
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 100
             }
 
             Row {
-                id:keycol
+                id: keycol
                 spacing: 30
-                anchors{
-                    horizontalCenter: keydes.horizontalCenter
-                    top: keydes.top
-                    topMargin: 150
-                }
+                anchors.horizontalCenter: keydes.horizontalCenter
 
                 Repeater {
-                    model: appsdata.shortcuts[currentIndex].keys
+                    model: (appsdata && appsdata.shortcuts && appsdata.shortcuts[currentIndex]) ? appsdata.shortcuts[currentIndex].keys : []
                     delegate: Rectangle {
-                        id:keyrect
-
-                        width: keyColors[index] === "green" ? 70 : keyColors[index] === "red" ? 70 : 60
-                        height: keyColors[index] === "green" ? 50 : keyColors[index] === "red" ? 50 : 40
-
-                        color: keyColors[index] === "green" ? "white" : keyColors[index] === "red" ? "white" : "black"
-                        border.color: keyColors[index] === "green" ? "white" : keyColors[index] === "red" ? "white" : "gray"
-                        border.width: 2
-                        radius: 10
+                        id: keyrect
+                        // expose a local index to satisfy linters and make bindings explicit
+                        property int idx: index
+                        width: (shortcutPage.keyColors && shortcutPage.keyColors[idx] === "green") ? 70 : (shortcutPage.keyColors && shortcutPage.keyColors[idx] === "red") ? 70 : 60
+                        height: (shortcutPage.keyColors && shortcutPage.keyColors[idx] === "green") ? 50 : (shortcutPage.keyColors && shortcutPage.keyColors[idx] === "red") ? 50 : 40
+                        color: (shortcutPage.keyColors && shortcutPage.keyColors[idx]) ? ((shortcutPage.keyColors[idx] === "green" || shortcutPage.keyColors[idx] === "red") ? "white" : "black") : "black"
+                        border.color: (shortcutPage.keyColors && shortcutPage.keyColors[idx]) ? ((shortcutPage.keyColors[idx] === "green" || shortcutPage.keyColors[idx] === "red") ? "white" : "gray") : "gray"
+                         border.width: 2
+                         radius: 10
 
                         Text {
                             anchors.centerIn: parent
                             font.pointSize: 14
-                            color:keyColors[index] === "green" ? "darkblack" : keyColors[index] === "red" ? "darkblack" : "gray"
-                            text: modelData
+                            color: (shortcutPage.keyColors && shortcutPage.keyColors[idx] && (shortcutPage.keyColors[idx] === "green" || shortcutPage.keyColors[idx] === "red")) ? "black" : "gray"
+                            text: modelData ? modelData : ""
                         }
 
-                        // CheckBoxcircle
-                        Rectangle{
-                            visible:keyColors[index] === "green" ? true : keyColors[index] === "red" ? true : false
-                            anchors{
-                                right: parent.right
-                                top: parent.top
-                                rightMargin: -5
-                                topMargin: -5
-                            }
-
-                            width:18
-                            height:18
-                            radius: 9
-
-                            color:keyColors[index] === "green" ? "green" : keyColors[index] === "red" ? "red" : "black"
-
-                            Text {
-                                anchors.centerIn: parent
-                                font.pointSize: 14
-                                color:keyColors[index] === "green" ? "darkblack" : keyColors[index] === "red" ? "darkblack" : "gray"
-                                text:keyColors[index] === "green" ? "✓" : keyColors[index] === "red" ? "✗" : ""
-                            }
+                        Rectangle {
+                            id: statusBadge
+                            // make parent property reference explicit to avoid scope issues
+                            property int idxLocal: keyrect.idx
+                            visible: shortcutPage.keyColors && (shortcutPage.keyColors[statusBadge.idxLocal] === "green" || shortcutPage.keyColors[statusBadge.idxLocal] === "red")
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            anchors.rightMargin: -5
+                            anchors.topMargin: -5
+                            width: 18; height: 18; radius: 9
+                            color: (shortcutPage.keyColors && shortcutPage.keyColors[statusBadge.idxLocal] === "green") ? "green" : "red"
+                            Text { anchors.centerIn: parent; font.pointSize: 14; color: "black"; text: (shortcutPage.keyColors && shortcutPage.keyColors[statusBadge.idxLocal] === "green") ? "✓" : "✗" }
                         }
                     }
                 }
             }
 
-            Text {
-                id: resultDisplay
-                text: ""
-                color: "white"
-                font.pixelSize: 24
-                anchors{
-                    right:parent.right
-                    top:keycol.bottom
-                    topMargin: (parent.height/10)
-                    rightMargin: (parent.width/3)
+            // result area - wrapped in Item so anchors inside are valid
+            Item {
+                id: resultWrapper; width: parent.width; height: parent.height / 6
+                Text {
+                    id: resultDisplay
+                    text: ""
+                    color: "white"
+                    font.pixelSize: 24
+                    anchors.right: parent.right
+                    anchors.rightMargin: (parent.width/3)
+                    anchors.verticalCenter: parent.verticalCenter
+                    opacity: 0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
                 }
-                opacity: 0
-                Behavior on opacity { NumberAnimation { duration: 200 } }
             }
         }
-    }
+     }
 
     Timer {
             id: resetTimer
@@ -353,11 +348,11 @@ Page {
     }
 
     function showResult(success) {
-        resultDisplay.text = success ? "✓ Correct!" : "✗ Try Again!"
-        resultDisplay.color = success ? "green" : "red"
-        resultDisplay.opacity = 1
-        if (!success) errorResetTimer.restart()
-    }
+         resultDisplay.text = success ? "✓ Correct!" : "✗ Try Again!"
+         resultDisplay.color = success ? "green" : "red"
+         resultDisplay.opacity = 1
+         if (!success) errorResetTimer.restart()
+     }
 }
 
 

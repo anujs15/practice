@@ -5,8 +5,8 @@ import "../Logging.js" as Log
 Rectangle {
     id: main
     color: "#000000"
-    required property var appsdata
-    required property StackView stackView
+    property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+    property var stackView: null
     property int donecount: 0
 
     Button {
@@ -53,8 +53,9 @@ Rectangle {
                 color: "white"
                 font { pixelSize: applogo.height/2; bold: true }
                 anchors{
-                    left:applogo.right
-                    leftMargin: applogo.width/10
+                    left: applogo.right
+                    // guard applogo.width (image may not have loaded yet) and fall back to a small margin
+                    leftMargin: (applogo && applogo.width) ? (applogo.width/10) : (parent.width * 0.05)
                     verticalCenter: parent.verticalCenter
                 }
             }
@@ -125,7 +126,7 @@ Rectangle {
                 radius: 10
 
                 Text {
-                    text: modelData.title
+                    text: modelData ? modelData.title : ""
                     color:"white"
                     font { pixelSize: parent.height/2.5; bold: true }
                     anchors.verticalCenter: parent.verticalCenter
@@ -134,7 +135,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: `${donecount}/${modelData.shortcuts.length}`
+                    text: (typeof donecount !== 'undefined' ? donecount : 0) + "/" + (modelData && modelData.shortcuts ? modelData.shortcuts.length : 0)
                     color:"#969599"
                     font { pixelSize: parent.height/4; bold: true }
                     anchors.verticalCenter: parent.verticalCenter

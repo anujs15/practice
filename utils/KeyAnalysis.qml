@@ -4,12 +4,14 @@ import QtQuick.Layouts 1.15
 import "../learningState.js" as Learning
 import "../Logging.js" as Log
 
+pragma ComponentBehavior: Bound
+
 Rectangle {
     id: main
     color: "#000000"
-    required property var appsdata
-    required property StackView stackView
-    required property var attemptedKeys
+    property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+    property var stackView: null
+    property var attemptedKeys: []
     Component.onCompleted: {
         Log.info("KeyAnalysis opened")
         if ((!attemptedKeys || attemptedKeys.length === 0) && appsdata && appsdata.id) {
@@ -24,7 +26,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: 10
-        onClicked: stackView.pop()
+        onClicked: main.stackView.pop()
     }
 
     Rectangle {
@@ -47,7 +49,7 @@ Rectangle {
 
             Image {
                 id: applogo
-                source: appsdata.appicon
+                source: main.appsdata.appicon
                 height: parent.height * 0.8
                 fillMode: Image.PreserveAspectFit
                 anchors {
@@ -58,7 +60,7 @@ Rectangle {
 
             Text {
                 id: appname
-                text: appsdata.title
+                text: main.appsdata.title
                 color: "white"
                 font { pixelSize: applogo.height / 2; bold: true }
                 anchors {
@@ -130,12 +132,15 @@ Rectangle {
 
             ListView {
                 id: listView
-                model: appsdata.test
+                model: main.appsdata.test
                 spacing: 3
                 clip: true
                 anchors.fill: parent
 
                 delegate: Rectangle {
+                    id: delegateRect
+                    required property int index
+                    required property var modelData
                     width: listView.width
                     height: 70
                     color: "#808080"
@@ -155,10 +160,9 @@ Rectangle {
                                 leftMargin: parent.width/40
                                 verticalCenter: parent.verticalCenter
                             }
-                            text: modelData.title
-                            color: attemptedKeys[currentIndex].correct ? "green"
-                                : attemptedKeys[currentIndex].attempt ? "red"
-                                : "#222222"
+                            text: delegateRect.modelData.title
+                            property var ak: (main.attemptedKeys && main.attemptedKeys.length > delegateRect.currentIndex) ? main.attemptedKeys[delegateRect.currentIndex] : {attempt:false, correct:false, keypressed:[], color:[]}
+                            color: ak.correct ? "green" : ak.attempt ? "red" : "#222222"
                             font.pixelSize: 20
                             font.bold: true
                         }
@@ -171,8 +175,9 @@ Rectangle {
                                  verticalCenter: parent.verticalCenter
                             }
                             Repeater {
-                                model: modelData.keys
+                                model: delegateRect.modelData.keys
                                 delegate: Rectangle {
+                                    required property var modelData
                                     width: 60
                                     height: 40
                                     color: "white"
@@ -184,7 +189,7 @@ Rectangle {
                                         anchors.centerIn: parent
                                         font.pointSize: 14
                                         color: "black"
-                                        text: modelData
+                                        text: parent.modelData
                                     }
                                 }
                             }
@@ -200,27 +205,33 @@ Rectangle {
                             }
 
                             Repeater {
-                                model: attemptedKeys[currentIndex].keypressed
-                                delegate: Rectangle {
-                                    width: 60
-                                    height: 40
-                                    color: "white"
-                                    border.color: "black"
-                                    border.width: 2
-                                    radius: 10
-
-                                    property int badgeIndex: index
-                                    property string badgeColor: attemptedKeys[currentIndex].color[badgeIndex]
+                                property var akLocal: (main.attemptedKeys && main.attemptedKeys.length > delegateRect.currentIndex) ? main.attemptedKeys[delegateRect.currentIndex] : {attempt:false, correct:false, keypressed:[], color:[]}
+                                model: akLocal.keypressed
+                                 delegate: Rectangle {
+                                     id: attemptedKeyRect
+                                     required property int index
+                                     required property var modelData
+                                     width: 60
+                                     height: 40
+                                     color: "white"
+                                     border.color: "black"
+                                     border.width: 2
+                                     radius: 10
+                                     
+                                     property string badgeColor: {
+                                         var akLocal = (main.attemptedKeys && main.attemptedKeys.length > delegateRect.currentIndex) ? main.attemptedKeys[delegateRect.currentIndex] : {attempt:false, correct:false, keypressed:[], color:[]}
+                                         return (akLocal.color && akLocal.color.length > index) ? akLocal.color[index] : "gray"
+                                     }
 
                                     Text {
                                         anchors.centerIn: parent
                                         font.pointSize: 14
                                         color: "black"
-                                        text: modelData
+                                        text: parent.modelData
                                     }
 
                                     Rectangle {
-                                        visible: badgeColor === "green" || badgeColor === "red"
+                                        visible: parent.badgeColor === "green" || parent.badgeColor === "red"
                                         anchors.right: parent.right
                                         anchors.top: parent.top
                                         anchors.rightMargin: -5
@@ -228,13 +239,13 @@ Rectangle {
                                         width: 18
                                         height: 18
                                         radius: 9
-                                        color: badgeColor
+                                        color: parent.badgeColor
 
                                         Text {
                                             anchors.centerIn: parent
                                             font.pointSize: 12
                                             color: "white"
-                                            text: badgeColor === "green" ? "✓" : "✗"
+                                            text: attemptedKeyRect.badgeColor === "green" ? "✓" : "✗"
                                         }
                                     }
                                 }

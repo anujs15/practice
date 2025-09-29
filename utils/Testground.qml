@@ -8,10 +8,9 @@ import "../Logging.js" as Log
 
 Page{
 
-    anchors.fill: parent
-
-    required property var appsdata
-    required property StackView stackView
+    property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+    property var stackView: null
+    property var attemptedKeys: []
 
     background: Rectangle {
         color: "black"
@@ -25,8 +24,6 @@ Page{
     property var keyText: []
     property int count: 1
     property bool skipright: true
-
-    property var attemptedKeys
 
     // attemptedKey array structure below, this data i osed in result.qml , KeyAnalysis.qml
       /* attemptedKeys: {
@@ -297,8 +294,8 @@ Page{
         color: "transparent"
         Keys.enabled: true
 
-        Keys.onPressed: {
-
+        Keys.onPressed: function(event) {
+             
             if (event.isAutoRepeat)
                 return
             else if (event.key === Qt.Key_Right && currentStep == 0) {
@@ -323,11 +320,15 @@ Page{
                     attemptedKeys[currentIndex].attempt = true
                     attemptedKeys[currentIndex].correct = !isallkeys
 
-                    attemptedKeys[currentIndex].keypressed= keyText
+                    // ensure structure exists for this index
+                    if (!attemptedKeys[currentIndex]) attemptedKeys[currentIndex] = {"keypressed":[], "color":[], "attempt": false, "correct": false}
+                    attemptedKeys[currentIndex].attempt = true
+                    attemptedKeys[currentIndex].correct = !isallkeys
+                    attemptedKeys[currentIndex].keypressed = keyText
                     attemptedKeys[currentIndex].color = keyColors
-
-                    // autosave on attempt completion
-                    saveLearning()
+                 
+                     // autosave on attempt completion
+                     saveLearning()
 
                     Log.info("Sequence completed for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown") +
                              ", index=" + currentIndex + ", result=" + (attemptedKeys[currentIndex].correct ? "correct" : "wrong"))
@@ -338,8 +339,8 @@ Page{
             }
         }
 
-        Keys.onReleased: {
-
+        Keys.onReleased: function(event) {
+             
             const releasedKey = Object.keys(activeKeys).find(key =>
                         (key === "Ctrl" && !(event.modifiers & Qt.ControlModifier)) ||
                         (key === "Shift" && !(event.modifiers & Qt.ShiftModifier)) ||
@@ -382,7 +383,7 @@ Page{
                 id: text
                 font.pointSize: 18
                 anchors.centerIn: parent
-                text: `${count}/${appsdata.test.length}`
+                text: count + "/" + (appsdata && appsdata.test ? appsdata.test.length : 0)
                 color: "white"
             }
         }
@@ -395,48 +396,27 @@ Page{
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 top: parent.top
-                topMargin: parent.height / 3
+                topMargin: 0
             }
+
+            // top spacer to emulate previous topMargin usage safely inside Column
+            Item { height: parent.height / 3 }
 
             Text {
                 id: keydes
-                text: appsdata.test[currentIndex].title
-                color: attemptedKeys[currentIndex].attempt ? "gray" : "white"
-                font {
-                    pixelSize: 48
-                    bold: true
-                }
+                text: (appsdata && appsdata.test && appsdata.test[currentIndex]) ? appsdata.test[currentIndex].title : ""
+                color: (attemptedKeys && attemptedKeys[currentIndex] && attemptedKeys[currentIndex].attempt) ? "gray" : "white"
+                font { pixelSize: 48; bold: true }
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 100
-
-                Rectangle {
-                    visible: attemptedKeys[currentIndex].attempt
-                    color: "green"
-                    height: 20
-                    width: 50
-                    radius: 2
-                    anchors {
-                        left: parent.right
-                        leftMargin: 10
-                    }
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Done"
-                    }
-                }
             }
 
             Row {
-                id:keycol
+                id: keycol
                 spacing: 30
-                anchors {
-                    horizontalCenter: keydes.horizontalCenter
-                    top: keydes.top
-                    topMargin: 150
-                }
+                anchors.horizontalCenter: keydes.horizontalCenter
 
                 Repeater {
-                    model: appsdata.test[currentIndex].keys
+                    model: (appsdata && appsdata.test && appsdata.test[currentIndex]) ? appsdata.test[currentIndex].keys : []
                     delegate: Rectangle {
                         id: keyrect
                         width: 60
@@ -452,28 +432,24 @@ Page{
                             font.pointSize: 14
                             font.bold: true
                             color: "black"
-                            text: keyText[index]
+                            text: (keyText && keyText[index]) ? keyText[index] : ""
                         }
                     }
                 }
             }
 
-            Text {
-                id: resultDisplay
-                text: ""
-                color: "green"
-                font.pixelSize: 24
-                anchors {
-                    right:parent.right
-                    top:keycol.bottom
-                    topMargin: (parent.height/10)
-                    rightMargin: (parent.width/3)
-                }
-                opacity: 0
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 200
-                    }
+            // result area - wrap into an Item to avoid forbidden top anchors inside Column
+            Item { width: parent.width; height: parent.height / 6
+                Text {
+                    id: resultDisplay
+                    text: ""
+                    color: "green"
+                    font.pixelSize: 24
+                    anchors.right: parent.right
+                    anchors.rightMargin: (parent.width/3)
+                    anchors.verticalCenter: parent.verticalCenter
+                    opacity: 0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
                 }
             }
         }

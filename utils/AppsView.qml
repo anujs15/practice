@@ -3,13 +3,15 @@ import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
 import "../Logging.js" as Log
 
+pragma ComponentBehavior: Bound
+
 Rectangle {
     id: tool
-    anchors.fill: parent
     color: "black"
 
-    required property var appsdata
-    required property StackView stackView
+    // safe defaults so this component can instantiate without errors
+    property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+    property var stackView: null
 
         // profile access button (top-right)
         Rectangle {
@@ -29,7 +31,7 @@ Rectangle {
                 anchors.fill: parent
                 onClicked: {
                     Log.info("Profile button clicked")
-                    stackView.push("Profile.qml", { appsdata: appsdata, stackView: stackView })
+                    tool.stackView.push("Profile.qml", { appsdata: tool.appsdata, stackView: tool.stackView })
                 }
             }
         }
@@ -44,7 +46,7 @@ Rectangle {
             }
 
             Repeater {
-                model: appsdata
+                model: tool.appsdata
                 delegate: AppDelegate {
                     appTitle: modelData.title
                     appIcon: modelData.appicon
@@ -56,6 +58,7 @@ Rectangle {
 
     component AppDelegate: Rectangle {
         id: delegateRoot
+        required property var modelData
         property string appTitle
         property string appIcon
 
@@ -93,9 +96,9 @@ Rectangle {
             anchors.fill: parent
             onClicked: {
                 Log.info("Open Category for app: " + delegateRoot.appTitle)
-                stackView.push("CategoryView.qml", {
-                    appsdata: modelData,
-                    stackView: stackView
+                tool.stackView.push("CategoryView.qml", {
+                    appsdata: delegateRoot.modelData,
+                    stackView: tool.stackView
                 })
             }
         }

@@ -8,6 +8,7 @@
 #include <QCryptographicHash>
 #include <QFileInfo>
 #include <QDateTime>
+#include <QDebug>
 
 static const char *ORG = "practice";
 static const char *APP = "practice";

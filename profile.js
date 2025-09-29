@@ -35,10 +35,12 @@ function collect(appsdata, attemptedByApp, alias) {
 }
 
 function apply(profile, out) {
-    if (!profile) return
-    // We only restore learning now
+    if (!profile || !out) return
+    // We only restore learning now — assign defensively in case the target does not declare the property
     if (profile.learning && out) {
-        out.learning = profile.learning
+        try {
+            out.learning = profile.learning
+        } catch(e) { /* ignore: target doesn't expose 'learning' */ }
     }
 }
 

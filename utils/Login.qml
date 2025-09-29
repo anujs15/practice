@@ -3,14 +3,18 @@ import QtQuick.Controls 2.15
 import Qt.labs.folderlistmodel 2.1
 import "../profile.js" as Profile
 import "../learningState.js" as Learning
-import "keydata.js" as Fn
+import "../keydata.js" as Fn
 import "../Logging.js" as Log
+
+pragma ComponentBehavior: Bound
 
 Page {
     id: login
 
     required property StackView stackView
     property int selectedIndex: -1
+
+    function showToast(msg) { Log.info(msg) }
 
     background: Rectangle { color: "black" }
 
@@ -19,7 +23,7 @@ Page {
 
         FolderListModel {
             id: aliasModel
-            folder: Store.appDataDir() + "/aliases"
+            folder: (typeof Store !== 'undefined' && Store && Store.appDataDir) ? Store.appDataDir() + "/aliases" : ""
             nameFilters: ["*.json"]
         }
 
@@ -30,14 +34,25 @@ Page {
             model: aliasModel
             clip: true
             delegate: Rectangle {
+                id: aliasDelegate
+                required property int index
                 height: 48
-                width: parent.width
+                width: listView.width
                 color: ListView.isCurrentItem ? "#333" : "#111"
                 Row { anchors.fill: parent; anchors.margins: 8; spacing: 10
-                    Text { text: model.fileName.replace(/\.json$/,''); color: "#ddd" }
-                    Text { text: Store.isEncryptedProfile(aliasModel.folder + "/" + model.fileName) ? "(protected)" : ""; color: "#999" }
+                    Text { text: (typeof fileName === 'string' && fileName.length) ? fileName.replace(/\.json$/,'') : ""; color: "#ddd" }
+                    Text {
+                        color: "#999"
+                        text: (function(){
+                            try {
+                                return ((typeof fileName === 'string' && fileName.length) && Store && Store.isEncryptedProfile)
+                                    ? (Store.isEncryptedProfile(aliasModel.folder + "/" + fileName) ? "(protected)" : "")
+                                    : ""
+                            } catch(e) { return "" }
+                        })()
+                    }
                 }
-                MouseArea { anchors.fill: parent; onClicked: { listView.currentIndex = index; login.selectedIndex = index } }
+                MouseArea { anchors.fill: parent; onClicked: { listView.currentIndex = aliasDelegate.index; login.selectedIndex = aliasDelegate.index } }
             }
         }
 
@@ -45,8 +60,8 @@ Page {
             Rectangle { width: 120; height: 38; radius: 6; color: "#3377cc"
                 Text { anchors.centerIn: parent; text: "Login"; color: "white" }
                 MouseArea { anchors.fill: parent; onClicked: {
-                    if (selectedIndex < 0) { showToast("Select an alias or continue as guest") ; return }
-                    var file = aliasModel.folder + "/" + aliasModel.get(selectedIndex).fileName
+                    if (login.selectedIndex < 0) { login.showToast("Select an alias or continue as guest") ; return }
+                    var file = aliasModel.folder + "/" + aliasModel.get(login.selectedIndex).fileName
                     if (Store.isEncryptedProfile(file)) {
                         Log.info("Protected alias selected; prompting for password")
                         pwPrompt.open(file)
@@ -54,14 +69,14 @@ Page {
                     }
                     var data = Store.loadProfile(file)
                     var profile = Profile.parse(data)
-                    Profile.apply(profile, root)
+                    Profile.apply(profile, login)
                     if (profile && profile.learning) Learning.Learning.apply(profile.learning)
                     Store.setLastProfilePath(file)
                     // persist signed-in alias (store alias name without extension)
-                    var an = aliasModel.get(selectedIndex).fileName.replace(/\.json$/,'')
+                    var an = aliasModel.get(login.selectedIndex).fileName.replace(/\.json$/,'')
                     Store.setSignedInAlias(an)
                     Log.info("Logged in as alias: " + an)
-                    stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: stackView })
+                    login.stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: login.stackView })
                 }}
             }
 
@@ -73,7 +88,7 @@ Page {
                     if (Store.fileExists(p) && !Store.isEncryptedProfile(p)) {
                         var data = Store.loadProfile(p)
                         var profile = Profile.parse(data)
-                        Profile.apply(profile, root)
+                        Profile.apply(profile, login)
                         if (profile && profile.learning) Learning.Learning.apply(profile.learning)
                         // persist as signed-in alias if file belongs to aliases dir
                         try {
@@ -88,7 +103,7 @@ Page {
                         Store.setSignedInAlias("")
                         Log.info("Continuing as guest; no signed-in alias persisted")
                     }
-                    stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: stackView })
+                    login.stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: login.stackView })
                 }}
             }
         }
@@ -97,7 +112,7 @@ Page {
 
         Rectangle { width: 200; height: 34; radius: 6; color: "#aaaaaa"
             Text { anchors.centerIn: parent; text: "Open Profile Settings"; color: "black" }
-            MouseArea { anchors.fill: parent; onClicked: stackView.push("Profile.qml", { appsdata: Fn.appsdata, stackView: stackView }) }
+            MouseArea { anchors.fill: parent; onClicked: login.stackView.push("Profile.qml", { appsdata: Fn.appsdata, stackView: login.stackView }) }
         }
     }
 
@@ -122,14 +137,14 @@ Page {
                     Text { anchors.centerIn: parent; text: "Open"; color: "white" }
                     MouseArea { anchors.fill: parent; onClicked: {
                         var content = Store.loadEncryptedProfile(path, passwordField.text)
-                        if (!content || content === "") { showToast("Wrong password or failed to open") ; return }
+                        if (!content || content === "") { login.showToast("Wrong password or failed to open") ; return }
                         var profile = Profile.parse(content)
-                        Profile.apply(profile, root)
+                        Profile.apply(profile, login)
                         if (profile && profile.learning) Learning.Learning.apply(profile.learning)
                         Store.setLastProfilePath(path)
                         pwPrompt.close()
                         Log.info("Logged in with protected alias at: " + path)
-                        stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: stackView })
+                        login.stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: login.stackView })
                     }}
                 }
                 Rectangle { width: 90; height: 34; radius: 6; color: "#555"
@@ -141,24 +156,27 @@ Page {
     }
 
     Component.onCompleted: {
-        // if a signed-in alias exists, attempt to auto-login
-        var alias = Store.signedInAlias()
-        if (alias && alias.length) {
-            Log.info("Auto-login attempt for alias: " + alias)
-            var path = Store.appDataDir() + "/aliases/" + alias + ".json"
-            if (Store.fileExists(path)) {
-                if (Store.isEncryptedProfile(path)) {
-                    pwPrompt.open(path)
-                } else {
-                    var data = Store.loadProfile(path)
-                    var profile = Profile.parse(data)
-                    Profile.apply(profile, login)
-                    if (profile && profile.learning) Learning.Learning.apply(profile.learning)
-                    Store.setLastProfilePath(path)
-                    stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: stackView })
+        // if a signed-in alias exists, attempt to auto-login (guarded in case Store is not yet available)
+        try {
+            if (!Store) return
+            var alias = Store.signedInAlias()
+            if (alias && alias.length) {
+                Log.info("Auto-login attempt for alias: " + alias)
+                var path = Store.appDataDir() + "/aliases/" + alias + ".json"
+                if (Store.fileExists(path)) {
+                    if (Store.isEncryptedProfile(path)) {
+                        pwPrompt.open(path)
+                    } else {
+                        var data = Store.loadProfile(path)
+                        var profile = Profile.parse(data)
+                        Profile.apply(profile, login)
+                        if (profile && profile.learning) Learning.Learning.apply(profile.learning)
+                        Store.setLastProfilePath(path)
+                        login.stackView.push("AppsView.qml", { appsdata: Fn.appsdata, stackView: login.stackView })
+                    }
                 }
             }
-        }
+        } catch(e) {}
     }
 
     // profile password prompt on profile settings page
@@ -182,16 +200,14 @@ Page {
                     Text { anchors.centerIn: parent; text: "Open"; color: "white" }
                     MouseArea { anchors.fill: parent; onClicked: {
                         var content = Store.loadEncryptedProfile(path, pwdField.text)
-                        if (!content || content === "") { showToast("Wrong password or failed to open") ; return }
+                        if (!content || content === "") { login.showToast("Wrong password or failed to open") ; return }
                         var profile = Profile.parse(content)
-                        Profile.apply(profile, root)
+                        Profile.apply(profile, login)
                         if (profile && profile.learning) Learning.Learning.apply(profile.learning)
                         Store.setLastProfilePath(path)
                         try { var fn = path.replace(/.*\/(.*)\.json$/,'$1'); Store.setSignedInAlias(fn) } catch(e) {}
                         pwPromptProfile.close()
-                        // refresh aliasField and UI
-                        aliasField.text = path.replace(/.*\/(.*)\.json$/,'$1')
-                        showToast("Loaded protected alias")
+                        login.showToast("Loaded protected alias")
                     }}
                 }
                 Rectangle { width: 90; height: 34; radius: 6; color: "#555"
