@@ -4,13 +4,13 @@ import QtQuick.Layouts 1.15
 import "../learningState.js" as Learning
 import "../profile.js" as Profile
 import "../keydata.js" as Fn
+import "../Logging.js" as Log
 
 Page{
 
-    anchors.fill: parent
-
-    required property var appsdata
-    required property StackView stackView
+    property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+    property var stackView: null
+    property var attemptedKeys: []
 
     background: Rectangle {
         color: "black"
@@ -24,8 +24,6 @@ Page{
     property var keyText: []
     property int count: 1
     property bool skipright: true
-
-    property var attemptedKeys: Array.from({"length": appsdata.test.length}, () =>({"keypressed":[], "color":[],"attempt": false,"correct": false}))
 
     // attemptedKey array structure below, this data i osed in result.qml , KeyAnalysis.qml
       /* attemptedKeys: {
@@ -67,6 +65,7 @@ Page{
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                Log.info("Submit pressed for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
                 // store the attempted keys for this app into global learning state
                 if (appsdata && appsdata.id) {
                     Learning.Learning.setLearning(appsdata.id, attemptedKeys)
@@ -88,23 +87,44 @@ Page{
     }
 
     Component.onCompleted: {
-        // load any saved attempts for this app
-        if (appsdata && appsdata.id) {
-            var map = Learning.Learning.getAll()
-            if (map && map[appsdata.id]) {
-                attemptedKeys = map[appsdata.id]
+        // initialize attemptedKeys safely once appsdata is available
+        if (!appsdata || !appsdata.test) {
+            attemptedKeys = []
+        } else {
+            attemptedKeys = []
+            for (var i = 0; i < appsdata.test.length; ++i) {
+                attemptedKeys.push({"keypressed":[], "color":[], "attempt": false, "correct": false})
+            }
+            // load any saved attempts for this app (overrides default)
+            if (appsdata && appsdata.id) {
+                var map = Learning.Learning.getAll()
+                if (map && map[appsdata.id]) {
+                    attemptedKeys = map[appsdata.id]
+                }
             }
         }
         resetSequence()
         keyHandler.forceActiveFocus()
     }
 
+    // Ensure keyboard focus is reclaimed when page shown
+    onVisibleChanged: if (visible) keyHandler.forceActiveFocus()
+    onActiveFocusChanged: if (activeFocus) keyHandler.forceActiveFocus()
+
     function resetSequence() {
         currentStep = 0
         activeKeys = {}
+        if (!appsdata || !appsdata.test || appsdata.test.length === 0) {
+            expectedSequence = []
+            keyColors = []
+            keyText = []
+            return
+        }
+        if (currentIndex < 0) currentIndex = 0
+        if (currentIndex >= appsdata.test.length) currentIndex = appsdata.test.length - 1
         expectedSequence = appsdata.test[currentIndex].keys
         keyColors = new Array(expectedSequence.length).fill("white")
-        keyText = new Array(appsdata.test[currentIndex].keys.length).fill("")
+        keyText = new Array(expectedSequence.length).fill("")
     }
 
     function keyEventToString(event) {
@@ -190,7 +210,9 @@ Page{
 
 
     function checkKeyPress(event) {
-        const currentKey = expectedSequence[currentStep]
+        const currentKey = expectedSequence && expectedSequence.length > 0 ? expectedSequence[currentStep] : null
+
+        if (!currentKey) return false
 
         let keyMatch = false
 
@@ -261,6 +283,7 @@ Page{
         if (!(appsdata && appsdata.id)) return
         // update global in-memory learning map
         Learning.Learning.setLearning(appsdata.id, attemptedKeys)
+        Log.info("Saving learning for app: " + appsdata.id)
         // persist to profile file
         var p = Store.lastProfilePath()
         if (!p || p === "") p = Store.defaultProfilePath()
@@ -270,186 +293,167 @@ Page{
         }
     }
 
-    Rectangle {
-        id: keyHandler
-        anchors.fill: parent
-        focus: true
-        color: "transparent"
-        Keys.enabled: true
+    FocusScope {
+        id: handlerScope
+        Rectangle {
+            id: keyHandler
+            anchors.fill: parent
+            focus: true
+            color: "transparent"
+            Keys.enabled: true
 
-        Keys.onPressed: {
+            Keys.onPressed: function(event) {
+                 
+                if (event.isAutoRepeat)
+                    return
+                else if (event.key === Qt.Key_Right && currentStep == 0) {
+                    skipRight()
+                } else if (event.key === Qt.Key_Left && currentStep == 0) {
+                    skipLeft()
+                } else {
 
-            if (event.isAutoRepeat)
-                return
-            else if (event.key === Qt.Key_Right && currentStep == 0) {
-                skipRight()
-            } else if (event.key === Qt.Key_Left && currentStep == 0) {
-                skipLeft()
-            } else {
+                    const currentKey = expectedSequence[currentStep]
+                    var newColors = keyColors.slice()
+                    var newText = keyText.slice()
+                    newText[currentStep] = keyEventToString(event)
+                    newColors[currentStep] = checkKeyPress(event) ? "green" : "red"
 
-                const currentKey = expectedSequence[currentStep]
-                var newColors = keyColors.slice()
-                var newText = keyText.slice()
-                newText[currentStep] = keyEventToString(event)
-                newColors[currentStep] = checkKeyPress(event) ? "green" : "red"
+                    keyColors = newColors
+                    keyText = newText
+                    activeKeys[currentKey] = true
+                    currentStep++
 
-                keyColors = newColors
-                keyText = newText
-                activeKeys[currentKey] = true
-                currentStep++
+                    if (currentStep === expectedSequence.length) {
+                        var isallkeys = keyColors.includes("red")
+                        attemptedKeys[currentIndex].attempt = true
+                        attemptedKeys[currentIndex].correct = !isallkeys
 
-                if (currentStep === expectedSequence.length) {
-                    var isallkeys = keyColors.includes("red")
-                    attemptedKeys[currentIndex].attempt = true
-                    attemptedKeys[currentIndex].correct = !isallkeys
+                        // ensure structure exists for this index
+                        if (!attemptedKeys[currentIndex]) attemptedKeys[currentIndex] = {"keypressed":[], "color":[], "attempt": false, "correct": false}
+                        attemptedKeys[currentIndex].attempt = true
+                        attemptedKeys[currentIndex].correct = !isallkeys
+                        attemptedKeys[currentIndex].keypressed = keyText
+                        attemptedKeys[currentIndex].color = keyColors
+                     
+                         // autosave on attempt completion
+                         saveLearning()
 
-                    attemptedKeys[currentIndex].keypressed= keyText
-                    attemptedKeys[currentIndex].color = keyColors
+                        Log.info("Sequence completed for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown") +
+                                 ", index=" + currentIndex + ", result=" + (attemptedKeys[currentIndex].correct ? "correct" : "wrong"))
 
-                    // autosave on attempt completion
-                    saveLearning()
-
-                    showResult(true)
-                    nextShortcutTimer.start()
+                        showResult(true)
+                        nextShortcutTimer.start()
+                    }
                 }
             }
-        }
 
-        Keys.onReleased: {
+            Keys.onReleased: function(event) {
+                 
+                const releasedKey = Object.keys(activeKeys).find(key =>
+                            (key === "Ctrl" && !(event.modifiers & Qt.ControlModifier)) ||
+                            (key === "Shift" && !(event.modifiers & Qt.ShiftModifier)) ||
+                            (key === "Alt" && !(event.modifiers & Qt.AltModifier)) ||
+                            (key === "Enter" && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)) ||
+                            (event.key === key.charCodeAt(0)))
 
-            const releasedKey = Object.keys(activeKeys).find(key =>
-                        (key === "Ctrl" && !(event.modifiers & Qt.ControlModifier)) ||
-                        (key === "Shift" && !(event.modifiers & Qt.ShiftModifier)) ||
-                        (key === "Alt" && !(event.modifiers & Qt.AltModifier)) ||
-                        (key === "Enter" && (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)) ||
-                        (event.key === key.charCodeAt(0)))
-
-            if ((event.key === Qt.Key_Right || event.key === Qt.Key_Left)
-                    && currentStep == 0) {
-                resetSequence()
-            } else if (!releasedKey && currentStep === expectedSequence.length) {
-                delete activeKeys[releasedKey]
-            } else if (releasedKey) {
-                delete activeKeys[releasedKey]
-                if (currentStep > 0 && currentStep < expectedSequence.length) {
+                if ((event.key === Qt.Key_Right || event.key === Qt.Key_Left)
+                        && currentStep == 0) {
+                    resetSequence()
+                } else if (!releasedKey && currentStep === expectedSequence.length) {
+                    delete activeKeys[releasedKey]
+                } else if (releasedKey) {
+                    delete activeKeys[releasedKey]
+                    if (currentStep > 0 && currentStep < expectedSequence.length) {
+                        currentStep = 0
+                        resetSequence()
+                    }
+                } else {
+                    delete activeKeys[releasedKey]
                     currentStep = 0
                     resetSequence()
                 }
-            } else {
-                delete activeKeys[releasedKey]
-                currentStep = 0
-                resetSequence()
-            }
-        }
-
-        Rectangle {
-            id: countstore
-            height: 50
-            width: 50
-            color: "black"
-
-            anchors {
-                right: parent.right
-                top: parent.top
-                rightMargin: 40
-                topMargin: 40
             }
 
-            Text {
-                id: text
-                font.pointSize: 18
-                anchors.centerIn: parent
-                text: `${count}/${appsdata.test.length}`
-                color: "white"
-            }
-        }
+            Rectangle {
+                id: countstore
+                height: 50
+                width: 50
+                color: "black"
 
-        Column {
-            id: main
-            width: parent.width
-            height: parent.height
-            spacing: 40
-            anchors {
-                horizontalCenter: parent.horizontalCenter
-                top: parent.top
-                topMargin: parent.height / 3
-            }
-
-            Text {
-                id: keydes
-                text: appsdata.test[currentIndex].title
-                color: attemptedKeys[currentIndex].attempt ? "gray" : "white"
-                font {
-                    pixelSize: 48
-                    bold: true
-                }
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.topMargin: 100
-
-                Rectangle {
-                    visible: attemptedKeys[currentIndex].attempt
-                    color: "green"
-                    height: 20
-                    width: 50
-                    radius: 2
-                    anchors {
-                        left: parent.right
-                        leftMargin: 10
-                    }
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Done"
-                    }
-                }
-            }
-
-            Row {
-                id:keycol
-                spacing: 30
                 anchors {
-                    horizontalCenter: keydes.horizontalCenter
-                    top: keydes.top
-                    topMargin: 150
+                    right: parent.right
+                    top: parent.top
+                    rightMargin: 40
+                    topMargin: 40
                 }
 
-                Repeater {
-                    model: appsdata.test[currentIndex].keys
-                    delegate: Rectangle {
-                        id: keyrect
-                        width: 60
-                        height: 40
+                Text {
+                    id: text
+                    font.pointSize: 18
+                    anchors.centerIn: parent
+                    text: count + "/" + (appsdata && appsdata.test ? appsdata.test.length : 0)
+                    color: "white"
+                }
+            }
 
-                        color: keyColors[index] === "green" ? "white" : keyColors[index]=== "red" ? "white" : "black"
-                        border.color: keyColors[index]=== "green" ? "white" : keyColors[index]=== "red" ? "white" : "gray"
-                        border.width: 2
-                        radius: 10
+            Column {
+                id: main
+                width: parent.width
+                height: parent.height
+                spacing: 40
+                anchors.centerIn: parent
 
-                        Text {
-                            anchors.centerIn: parent
-                            font.pointSize: 14
-                            font.bold: true
-                            color: "black"
-                            text: keyText[index]
+                // top spacer to emulate previous topMargin usage safely inside Column
+                Item { height: parent.height / 3 }
+
+                Text {
+                    id: keydes
+                    text: (appsdata && appsdata.test && appsdata.test[currentIndex]) ? appsdata.test[currentIndex].title : ""
+                    color: (attemptedKeys && attemptedKeys[currentIndex] && attemptedKeys[currentIndex].attempt) ? "gray" : "white"
+                    font { pixelSize: 48; bold: true }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Row {
+                    id: keycol
+                    spacing: 30
+                    anchors.horizontalCenter: keydes.horizontalCenter
+
+                    Repeater {
+                        model: (appsdata && appsdata.test && appsdata.test[currentIndex]) ? appsdata.test[currentIndex].keys : []
+                        delegate: Rectangle {
+                            id: keyrect
+                            width: 60
+                            height: 40
+
+                            color: keyColors[index] === "green" ? "white" : keyColors[index]=== "red" ? "white" : "black"
+                            border.color: keyColors[index]=== "green" ? "white" : keyColors[index]=== "red" ? "white" : "gray"
+                            border.width: 2
+                            radius: 10
+
+                            Text {
+                                anchors.centerIn: parent
+                                font.pointSize: 14
+                                font.bold: true
+                                color: "black"
+                                text: (keyText && keyText[index]) ? keyText[index] : ""
+                            }
                         }
                     }
                 }
-            }
 
-            Text {
-                id: resultDisplay
-                text: ""
-                color: "green"
-                font.pixelSize: 24
-                anchors {
-                    right:parent.right
-                    top:keycol.bottom
-                    topMargin: (parent.height/10)
-                    rightMargin: (parent.width/3)
-                }
-                opacity: 0
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 200
+                // result area - wrap into an Item to avoid forbidden top anchors inside Column
+                Item { width: parent.width; height: parent.height / 6
+                    Text {
+                        id: resultDisplay
+                        text: ""
+                        color: "green"
+                        font.pixelSize: 24
+                        anchors.right: parent.right
+                        anchors.rightMargin: (parent.width/3)
+                        anchors.verticalCenter: parent.verticalCenter
+                        opacity: 0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
                     }
                 }
             }
@@ -463,13 +467,15 @@ Page{
     }
 
     function skipRight() {
-        currentIndex = (currentIndex + 1) < appsdata.test.length ? currentIndex + 1 : appsdata.test.length
+        if (!appsdata || !appsdata.test || appsdata.test.length === 0) return
+        currentIndex = (currentIndex + 1) < appsdata.test.length ? currentIndex + 1 : (appsdata.test.length - 1)
         count = (((count + 1) < appsdata.test.length + 1)) ? count + 1 : appsdata.test.length
         resetSequence()
     }
 
     function skipLeft() {
-        currentIndex = (currentIndex - 1) > 0 ? currentIndex - 1 : 0
+        if (!appsdata || !appsdata.test || appsdata.test.length === 0) return
+        currentIndex = (currentIndex - 1) >= 0 ? currentIndex - 1 : 0
         count = (count - 1) > 0 ? count - 1 : 1
         resetSequence()
     }

@@ -1,8 +1,9 @@
 // Simple profile helper for packing/unpacking user data
 
-function collect(appsdata, attemptedByApp) {
+function collect(appsdata, attemptedByApp, alias) {
     // compute minimal overall stats from attemptedByApp
     var stats = { totalApps: 0, totalTests: 0, attempted: 0, correct: 0 }
+    var completedObjectives = {}
     try {
         var learning = attemptedByApp || {}
         var appIds = Object.keys(learning)
@@ -10,28 +11,36 @@ function collect(appsdata, attemptedByApp) {
         appIds.forEach(function(appId) {
             var arr = learning[appId] || []
             stats.totalTests += arr.length || 0
+            completedObjectives[appId] = []
             for (var i = 0; i < arr.length; i++) {
                 var it = arr[i]
                 if (it && it.attempt) stats.attempted += 1
-                if (it && it.correct) stats.correct += 1
+                if (it && it.correct) {
+                    stats.correct += 1
+                    completedObjectives[appId].push(i)
+                }
             }
         })
     } catch(e) { /* ignore */ }
 
     return {
         version: 1,
+        alias: alias || "",
         apps: appsdata, // static shortcuts structure
         learning: attemptedByApp || {}, // map appId -> attemptedKeys array (from Testground)
+        completedObjectives: completedObjectives, // map appId -> list of completed test indices
         addedApps: [], // placeholder if user adds custom apps later
         overall: stats
     }
 }
 
 function apply(profile, out) {
-    if (!profile) return
-    // We only restore learning now
+    if (!profile || !out) return
+    // We only restore learning now — assign defensively in case the target does not declare the property
     if (profile.learning && out) {
-        out.learning = profile.learning
+        try {
+            out.learning = profile.learning
+        } catch(e) { /* ignore: target doesn't expose 'learning' */ }
     }
 }
 

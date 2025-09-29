@@ -1,14 +1,17 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
+import "../Logging.js" as Log
+
+pragma ComponentBehavior: Bound
 
 Rectangle {
     id: tool
-    anchors.fill: parent
     color: "black"
 
-    required property var appsdata
-    required property StackView stackView
+    // safe defaults so this component can instantiate without errors
+    property var appsdata: ({ test: [], shortcuts: [], sets: [], title: "", appicon: "", id: "" })
+    property var stackView: null
 
         // profile access button (top-right)
         Rectangle {
@@ -26,7 +29,10 @@ Rectangle {
             Text { anchors.centerIn: parent; text: "Profile"; color: "white"; font.pixelSize: 14; font.bold: true }
             MouseArea {
                 anchors.fill: parent
-                onClicked: stackView.push("Profile.qml", { appsdata: appsdata, stackView: stackView })
+                onClicked: {
+                    Log.info("Profile button clicked")
+                    tool.stackView.push("Profile.qml", { appsdata: tool.appsdata, stackView: tool.stackView })
+                }
             }
         }
 
@@ -40,7 +46,7 @@ Rectangle {
             }
 
             Repeater {
-                model: appsdata
+                model: tool.appsdata
                 delegate: AppDelegate {
                     appTitle: modelData.title
                     appIcon: modelData.appicon
@@ -52,6 +58,7 @@ Rectangle {
 
     component AppDelegate: Rectangle {
         id: delegateRoot
+        required property var modelData
         property string appTitle
         property string appIcon
 
@@ -88,9 +95,10 @@ Rectangle {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-                stackView.push("CategoryView.qml", {
-                    appsdata: modelData,
-                    stackView: stackView
+                Log.info("Open Category for app: " + delegateRoot.appTitle)
+                tool.stackView.push("CategoryView.qml", {
+                    appsdata: delegateRoot.modelData,
+                    stackView: tool.stackView
                 })
             }
         }

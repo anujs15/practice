@@ -5,7 +5,12 @@ project(practice VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+# Enable generation of QML type information for editor tooling and QML import resolution
+# This helps tools (and some IDEs) resolve QML imports like QtQuick.Controls and QtQuick.Layouts.
+set(QT_QML_GENERATE_QMLLS_INI ON CACHE BOOL "Generate qmltypes/qmlls ini files for QML modules")
+
+# Find Qt modules required by the application. Include QtQuick and Qt Quick Controls 2
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -14,28 +19,27 @@ qt_add_executable(apppractice
     DataStore.cpp
 )
 
+# List QML and JS files passed to the QML module in a clean way
 qt_add_qml_module(apppractice
     URI practice
     VERSION 1.0
     QML_FILES
         Main.qml
-        QML_FILES
-        QML_FILES
-        QML_FILES
-        QML_FILES keydata.js
-        QML_FILES utils/ShortcutView.qml
-        QML_FILES utils/CategoryView.qml
-        QML_FILES utils/AppsView.qml
-        RESOURCES Resource.qrc
-        QML_FILES
-        QML_FILES utils/Testground.qml
-        QML_FILES vstestdata.js
-        QML_FILES utils/Result.qml
-        QML_FILES utils/KeyAnalysis.qml
-    QML_FILES utils/Profile.qml
-    QML_FILES profile.js
-    QML_FILES learningState.js
-        QML_FILES
+        utils/Login.qml
+        utils/ShortcutView.qml
+        utils/CategoryView.qml
+        utils/AppsView.qml
+        utils/Testground.qml
+        utils/Result.qml
+        utils/KeyAnalysis.qml
+        utils/Profile.qml
+        profile.js
+        keydata.js
+        learningState.js
+        vstestdata.js
+        Logging.js
+    RESOURCES
+        Resource.qrc
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -50,7 +54,7 @@ set_target_properties(apppractice PROPERTIES
 )
 
 target_link_libraries(apppractice
-    PRIVATE Qt6::Quick
+    PRIVATE Qt6::Quick Qt6::QuickControls2
 )
 
 include(GNUInstallDirs)
