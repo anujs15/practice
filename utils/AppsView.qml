@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
+import "../Logging.js" as Log
 
 Rectangle {
     id: tool
@@ -26,7 +27,10 @@ Rectangle {
             Text { anchors.centerIn: parent; text: "Profile"; color: "white"; font.pixelSize: 14; font.bold: true }
             MouseArea {
                 anchors.fill: parent
-                onClicked: stackView.push("Profile.qml", { appsdata: appsdata, stackView: stackView })
+                onClicked: {
+                    Log.info("Profile button clicked")
+                    stackView.push("Profile.qml", { appsdata: appsdata, stackView: stackView })
+                }
             }
         }
 
@@ -88,6 +92,7 @@ Rectangle {
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                Log.info("Open Category for app: " + delegateRoot.appTitle)
                 stackView.push("CategoryView.qml", {
                     appsdata: modelData,
                     stackView: stackView

@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import "../learningState.js" as Learning
 import "../profile.js" as Profile
 import "../keydata.js" as Fn
+import "../Logging.js" as Log
 
 Page{
 
@@ -25,7 +26,7 @@ Page{
     property int count: 1
     property bool skipright: true
 
-    property var attemptedKeys: Array.from({"length": appsdata.test.length}, () =>({"keypressed":[], "color":[],"attempt": false,"correct": false}))
+    property var attemptedKeys
 
     // attemptedKey array structure below, this data i osed in result.qml , KeyAnalysis.qml
       /* attemptedKeys: {
@@ -67,6 +68,7 @@ Page{
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                Log.info("Submit pressed for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
                 // store the attempted keys for this app into global learning state
                 if (appsdata && appsdata.id) {
                     Learning.Learning.setLearning(appsdata.id, attemptedKeys)
@@ -88,11 +90,20 @@ Page{
     }
 
     Component.onCompleted: {
-        // load any saved attempts for this app
-        if (appsdata && appsdata.id) {
-            var map = Learning.Learning.getAll()
-            if (map && map[appsdata.id]) {
-                attemptedKeys = map[appsdata.id]
+        // initialize attemptedKeys safely once appsdata is available
+        if (!appsdata || !appsdata.test) {
+            attemptedKeys = []
+        } else {
+            attemptedKeys = []
+            for (var i = 0; i < appsdata.test.length; ++i) {
+                attemptedKeys.push({"keypressed":[], "color":[], "attempt": false, "correct": false})
+            }
+            // load any saved attempts for this app (overrides default)
+            if (appsdata && appsdata.id) {
+                var map = Learning.Learning.getAll()
+                if (map && map[appsdata.id]) {
+                    attemptedKeys = map[appsdata.id]
+                }
             }
         }
         resetSequence()
@@ -102,9 +113,17 @@ Page{
     function resetSequence() {
         currentStep = 0
         activeKeys = {}
+        if (!appsdata || !appsdata.test || appsdata.test.length === 0) {
+            expectedSequence = []
+            keyColors = []
+            keyText = []
+            return
+        }
+        if (currentIndex < 0) currentIndex = 0
+        if (currentIndex >= appsdata.test.length) currentIndex = appsdata.test.length - 1
         expectedSequence = appsdata.test[currentIndex].keys
         keyColors = new Array(expectedSequence.length).fill("white")
-        keyText = new Array(appsdata.test[currentIndex].keys.length).fill("")
+        keyText = new Array(expectedSequence.length).fill("")
     }
 
     function keyEventToString(event) {
@@ -261,6 +280,7 @@ Page{
         if (!(appsdata && appsdata.id)) return
         // update global in-memory learning map
         Learning.Learning.setLearning(appsdata.id, attemptedKeys)
+        Log.info("Saving learning for app: " + appsdata.id)
         // persist to profile file
         var p = Store.lastProfilePath()
         if (!p || p === "") p = Store.defaultProfilePath()
@@ -308,6 +328,9 @@ Page{
 
                     // autosave on attempt completion
                     saveLearning()
+
+                    Log.info("Sequence completed for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown") +
+                             ", index=" + currentIndex + ", result=" + (attemptedKeys[currentIndex].correct ? "correct" : "wrong"))
 
                     showResult(true)
                     nextShortcutTimer.start()
@@ -463,13 +486,15 @@ Page{
     }
 
     function skipRight() {
-        currentIndex = (currentIndex + 1) < appsdata.test.length ? currentIndex + 1 : appsdata.test.length
+        if (!appsdata || !appsdata.test || appsdata.test.length === 0) return
+        currentIndex = (currentIndex + 1) < appsdata.test.length ? currentIndex + 1 : (appsdata.test.length - 1)
         count = (((count + 1) < appsdata.test.length + 1)) ? count + 1 : appsdata.test.length
         resetSequence()
     }
 
     function skipLeft() {
-        currentIndex = (currentIndex - 1) > 0 ? currentIndex - 1 : 0
+        if (!appsdata || !appsdata.test || appsdata.test.length === 0) return
+        currentIndex = (currentIndex - 1) >= 0 ? currentIndex - 1 : 0
         count = (count - 1) > 0 ? count - 1 : 1
         resetSequence()
     }

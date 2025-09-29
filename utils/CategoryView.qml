@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import "../Logging.js" as Log
 
 Rectangle {
     id: main
@@ -79,10 +80,13 @@ Rectangle {
                         verticalCenter: parent.verticalCenter
                 }
 
-                onClicked: stackView.push("Testground.qml", {
-                            appsdata:appsdata,
-                            stackView: stackView
-                        })
+                onClicked: {
+                    Log.info("Open Testground for app: " + appsdata.title)
+                    stackView.push("Testground.qml", {
+                                appsdata:appsdata,
+                                stackView: stackView
+                            })
+                }
               }
 
               Text {
@@ -141,6 +145,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
+                        Log.info("Open ShortcutView for set: " + modelData.title)
                         stackView.push("ShortcutView.qml", {
                             appsdata: modelData,
                             donecount:donecount,

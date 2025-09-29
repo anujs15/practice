@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import "../Logging.js" as Log
 
 Page {
 
@@ -32,13 +33,24 @@ Page {
     Component.onCompleted: {
         resetSequence()
         keyHandler.forceActiveFocus()
+        Log.info("ShortcutView opened for: " + (appsdata && appsdata.title ? appsdata.title : "unknown"))
     }
 
     function resetSequence() {
         currentStep = 0
         activeKeys = {}
-        keyColors = new Array(appsdata.shortcuts[currentIndex].keys.length).fill("white")
+        if (!appsdata || !appsdata.shortcuts || appsdata.shortcuts.length === 0) {
+            expectedSequence = []
+            keyColors = []
+            keyText = []
+            return
+        }
+        // ensure currentIndex in range
+        if (currentIndex < 0) currentIndex = 0
+        if (currentIndex >= appsdata.shortcuts.length) currentIndex = appsdata.shortcuts.length - 1
         expectedSequence = appsdata.shortcuts[currentIndex].keys
+        keyColors = new Array(expectedSequence.length).fill("white")
+        keyText = new Array(expectedSequence.length).fill("")
     }
 
     function checkKeyPress(event) {
@@ -61,53 +73,53 @@ Page {
         }else if (currentKey === "Space") {
             keyMatch = event.key === Qt.Key_Space
         }else if (currentKey === "Tab") {
-            keyMatch = event.key === Qt.Qt.Key_Tab
-        }else if (currentKey === "Backtab") {
-            keyMatch = event.key === Qt.Key_Backtab
-        }else if (currentKey === "Backspace") {
-            keyMatch = event.key === Qt.Key_Backspace
-        }else if (currentKey === "Delete") {
-            keyMatch = event.key === Qt.Key_Delete
-        }else if (currentKey === "Inser") {
-            keyMatch = event.key === Qt.Key_Insert
-        }else if (currentKey === "Home") {
-            keyMatch = event.key === Qt.Key_Home
-        }else if (currentKey === "End") {
-            keyMatch = event.key === Qt.Key_End
-        }else if (currentKey === "Up") {
-            keyMatch = event.key === Qt.Key_Up
-        }else if (currentKey === "Down") {
-            keyMatch = event.key === Qt.Key_Down
-        }else if (currentKey === "F1") {
-            keyMatch = event.key === Qt.Key_F1
-        }else if (currentKey === "F2") {
-            keyMatch = event.key === Qt.Key_F2
-        }else if (currentKey === "F3") {
-            keyMatch = event.key === Qt.Key_F3
-        }else if (currentKey === "F4") {
-            keyMatch = event.key === Qt.Key_F4
-        }else if (currentKey === "F5") {
-            keyMatch = event.key === Qt.Key_F5
-        }else if (currentKey === "F6") {
-            keyMatch = event.key === Qt.Key_F6
-        }else if (currentKey === "F7") {
-            keyMatch = event.key === Qt.Key_F7
-        }else if (currentKey === "F8") {
-            keyMatch = event.key === Qt.Key_F8
-        }else if (currentKey === "F9") {
-            keyMatch = event.key === Qt.Key_F9
-        }else if (currentKey === "F10") {
-            keyMatch = event.key === Qt.Key_F10
-        }else if (currentKey === "F11") {
-            keyMatch = event.key === Qt.Key_F11
-        }else if (currentKey === "F12") {
-            keyMatch = event.key === Qt.Key_F12
-        }else {
-            keyMatch = event.key === currentKey.charCodeAt(0)
-        }
+            keyMatch = event.key === Qt.Key_Tab
+         }else if (currentKey === "Backtab") {
+             keyMatch = event.key === Qt.Key_Backtab
+         }else if (currentKey === "Backspace") {
+             keyMatch = event.key === Qt.Key_Backspace
+         }else if (currentKey === "Delete") {
+             keyMatch = event.key === Qt.Key_Delete
+         }else if (currentKey === "Insert") {
+             keyMatch = event.key === Qt.Key_Insert
+         }else if (currentKey === "Home") {
+             keyMatch = event.key === Qt.Key_Home
+         }else if (currentKey === "End") {
+             keyMatch = event.key === Qt.Key_End
+         }else if (currentKey === "Up") {
+             keyMatch = event.key === Qt.Key_Up
+         }else if (currentKey === "Down") {
+             keyMatch = event.key === Qt.Key_Down
+         }else if (currentKey === "F1") {
+             keyMatch = event.key === Qt.Key_F1
+         }else if (currentKey === "F2") {
+             keyMatch = event.key === Qt.Key_F2
+         }else if (currentKey === "F3") {
+             keyMatch = event.key === Qt.Key_F3
+         }else if (currentKey === "F4") {
+             keyMatch = event.key === Qt.Key_F4
+         }else if (currentKey === "F5") {
+             keyMatch = event.key === Qt.Key_F5
+         }else if (currentKey === "F6") {
+             keyMatch = event.key === Qt.Key_F6
+         }else if (currentKey === "F7") {
+             keyMatch = event.key === Qt.Key_F7
+         }else if (currentKey === "F8") {
+             keyMatch = event.key === Qt.Key_F8
+         }else if (currentKey === "F9") {
+             keyMatch = event.key === Qt.Key_F9
+         }else if (currentKey === "F10") {
+             keyMatch = event.key === Qt.Key_F10
+         }else if (currentKey === "F11") {
+             keyMatch = event.key === Qt.Key_F11
+         }else if (currentKey === "F12") {
+             keyMatch = event.key === Qt.Key_F12
+         }else {
+             keyMatch = event.key === currentKey.charCodeAt(0)
+         }
 
-        return keyMatch && !activeKeys[currentKey]
-    }
+         return keyMatch && !activeKeys[currentKey]
+     }
 
     Rectangle {
         id: keyHandler
@@ -146,6 +158,7 @@ Page {
                            showResult(false)
                            resetTimer.start()
                        }
+                       Log.info("Shortcut attempt result: app=" + (appsdata && appsdata.title ? appsdata.title : "unknown") + ", index=" + currentIndex + ", success=" + (!isallkeys))
                        event.accepted = true
                 }
             }
@@ -318,14 +331,16 @@ Page {
 
     function skipRight()
     {
-        currentIndex = (currentIndex + 1)<appsdata.shortcuts.length?currentIndex + 1:appsdata.shortcuts.length
-        count=(((count + 1) <appsdata.shortcuts.length+1))?count+1:appsdata.shortcuts.length
+        if (!appsdata || !appsdata.shortcuts || appsdata.shortcuts.length === 0) return
+        currentIndex = (currentIndex + 1) < appsdata.shortcuts.length ? currentIndex + 1 : (appsdata.shortcuts.length - 1)
+        count = (((count + 1) < appsdata.shortcuts.length + 1)) ? count + 1 : appsdata.shortcuts.length
         resetSequence()
     }
 
     function skipLeft()
     {
-        currentIndex = (currentIndex - 1)>0?currentIndex - 1:0
+        if (!appsdata || !appsdata.shortcuts || appsdata.shortcuts.length === 0) return
+        currentIndex = (currentIndex - 1) >= 0 ? currentIndex - 1 : 0
         count=(count - 1)>0?count-1:1
         resetSequence()
     }

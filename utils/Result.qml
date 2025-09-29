@@ -3,6 +3,7 @@ import QtQuick.Window 2.15
 import QtQuick.Shapes
 import QtQuick.Controls 2.15
 import "../learningState.js" as Learning
+import "../Logging.js" as Log
 
 Rectangle{
      id:root
@@ -42,7 +43,10 @@ Rectangle{
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: 10
-        onClicked: stackView.pop()
+        onClicked: {
+            Log.info("Result Back pressed for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
+            stackView.pop()
+        }
     }
 
     Row {
@@ -77,6 +81,7 @@ Rectangle{
            MouseArea {
                anchors.fill: parent
                onClicked: {
+                   Log.info("Open KeyAnalysis for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
                    stackView.push("KeyAnalysis.qml", {
                       attemptedKeys:attemptedKeys,
                        appsdata:appsdata,
@@ -87,6 +92,14 @@ Rectangle{
          }
        }
 
+    Component.onCompleted: {
+        if ((!attemptedKeys || attemptedKeys.length === 0) && appsdata && appsdata.id) {
+            var map = Learning.Learning.getAll()
+            if (map && map[appsdata.id]) attemptedKeys = map[appsdata.id]
+        }
+        updateKeyCounts()
++        Log.info("Result page opened for app: " + (appsdata && appsdata.id ? appsdata.id : "unknown"))
+    }
 
      Shape{
          id:shape
@@ -128,7 +141,8 @@ Rectangle{
         target: shape
         property: "progress"
         from: 0.0
-        to:correctkey/attemptedKeys.length
+-        to:correctkey/attemptedKeys.length
++        to: (attemptedKeys && attemptedKeys.length > 0) ? (correctkey/attemptedKeys.length) : 0.0
         duration: 3000
         running: true
     }

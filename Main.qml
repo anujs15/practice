@@ -16,29 +16,12 @@ ApplicationWindow {
     StackView {
            id: stackView
            anchors.fill: parent
-           initialItem: AppsView {
-               appsdata: Fn.appsdata
+           initialItem: Login {
                stackView: stackView
            }
        }
 
-    // user initialization & auto reopen
-    Component.onCompleted: {
-        var p = Store.lastProfilePath()
-        if (Store.fileExists(p)) {
-            var data = Store.loadProfile(p)
-            var prof = Profile.parse(data)
-            // we only keep learning map here; can be used by pages that accept it
-            if (prof && prof.learning) {
-                Learning.Learning.apply(prof.learning)
-            }
-        } else {
-            // create a default profile automatically on first run
-            var payload = Profile.collect(Fn.appsdata, Learning.Learning.getAll())
-            var ok = Store.saveProfile(Store.defaultProfilePath(), Profile.stringify(payload))
-            if (ok) Store.setLastProfilePath(Store.defaultProfilePath())
-        }
-    }
+    // app startup and profile loading are handled by the Login page
 }
 
 
